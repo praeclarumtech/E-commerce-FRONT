@@ -1,5 +1,5 @@
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
@@ -28,6 +28,11 @@ const LayoutContent: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
+  const token = localStorage.getItem("token");
+
+  if(!token) { 
+    return <Navigate to={"/signin"} />
+  }
   return (
     <SidebarProvider>
       <LayoutContent />
