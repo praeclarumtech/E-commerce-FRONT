@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { ChevronLeftIcon, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useFormik } from "formik";
@@ -8,13 +8,13 @@ import Input from "../../../components/form/input/InputField";
 import Checkbox from "../../../components/form/input/Checkbox";
 import { signup } from "../api";
 import { signupSchema } from "../validations";
+import { CookieStorage } from "cookie-storage";
+import withoutAuth from "./withoutAuth";
 
-export default function SignUp() {
-
+function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
-    const navigate = useNavigate();
-
+    const cookieStorage= new CookieStorage()
 
     const formik = useFormik({
         initialValues: {
@@ -26,13 +26,10 @@ export default function SignUp() {
         validationSchema: signupSchema,
         onSubmit: () => {
             const token = signup();
+            cookieStorage.setItem("signup",token)
             localStorage.setItem("token", token);
-            navigate("/", { replace: true } as { replace: boolean });
         },
     });
-
-    // if (!token || token.trim() === "" || token === null) { return <Navigate to={"/"} /> }
-
 
     return (
         <>
@@ -221,3 +218,5 @@ export default function SignUp() {
         </>
     );
 }
+
+export default withoutAuth(SignUp)

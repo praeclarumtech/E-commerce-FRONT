@@ -1,8 +1,11 @@
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Navigate, Outlet } from "react-router";
+import { Route, Routes } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
+import UserProfiles from "../pages/UserProfiles";
+import AuthDash from "../pages/Dashboard/Home";
+import withAuth from "../modules/auth/components/withAuth";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -14,13 +17,15 @@ const LayoutContent: React.FC = () => {
         <Backdrop />
       </div>
       <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${
-          isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
-        } ${isMobileOpen ? "ml-0" : ""}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
+          } ${isMobileOpen ? "ml-0" : ""}`}
       >
         <AppHeader />
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
-          <Outlet />
+          <Routes>
+            <Route index element={<AuthDash />} />
+            <Route path="/profile" element={<UserProfiles />} />
+          </Routes>
         </div>
       </div>
     </div>
@@ -28,11 +33,6 @@ const LayoutContent: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
-  const token = localStorage.getItem("token");
-
-  if(!token) { 
-    return <Navigate to={"/signin"} />
-  }
   return (
     <SidebarProvider>
       <LayoutContent />
@@ -40,4 +40,4 @@ const AppLayout: React.FC = () => {
   );
 };
 
-export default AppLayout;
+export default withAuth(AppLayout);

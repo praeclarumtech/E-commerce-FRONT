@@ -1,5 +1,5 @@
 import AuthLayout from "../../../pages/AuthPages/AuthPageLayout";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Link  } from "react-router";
 import Button from "../../../components/ui/button/Button";
 import { Eye, EyeOff } from "lucide-react";
 import Input from "../../../components/form/input/InputField";
@@ -8,10 +8,13 @@ import { useFormik } from 'formik';
 import { useState } from "react";
 import { signinSchema } from "../validations";
 import { signin } from "../api";
+import { CookieStorage } from "cookie-storage";
+import withoutAuth from "./withoutAuth";
 
-export default function SignIn() {
+function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const cookieStorage = new CookieStorage()
+
 
   const formik = useFormik({
     initialValues: {
@@ -21,16 +24,10 @@ export default function SignIn() {
     validationSchema: signinSchema,
     onSubmit: () => {
       const token = signin();
+      cookieStorage.setItem("signin", token)
       localStorage.setItem("token", token)
-      navigate("/", { replace: true } as { replace: boolean });
     },
   });
-
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    return <Navigate to={"/"} />
-  }
 
   return (
     <>
@@ -162,3 +159,5 @@ export default function SignIn() {
     </>
   );
 }
+
+export default withoutAuth(SignIn)
