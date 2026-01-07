@@ -5,7 +5,7 @@ import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import UserProfiles from "../pages/UserProfiles";
 import AuthDash from "../pages/Dashboard/Home";
-import withAuth from "../modules/auth/components/withAuth";
+import withAuth from "../shared/component/withAuth";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
