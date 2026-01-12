@@ -1,51 +1,29 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
-import UserProfiles from "./pages/UserProfiles";
-import Images from "./pages/UiElements/Images";
-import Alerts from "./pages/UiElements/Alerts";
-import Avatars from "./pages/UiElements/Avatars";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
-import AppLayout from "./layout/AppLayout";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ToastContainer } from "react-toastify";
+
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
+import queryClient from "./shared/api/client";
+import SignIn from "./modules/auth/components/SignIn";
+import AppLayout from "./layout/AppLayout";
+import SignUp from "./modules/auth/components/SignUp";
+import ChangePassword from "./modules/auth/components/ChangePassword";
+import ForgotPassword from "./modules/auth/components/ForgotPassword";
 
 export default function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <ScrollToTop />
+        <ToastContainer />
         <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
-
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/blank" element={<Blank />} />
-
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
-
-            {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
-
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/images" element={<Images />} />
-
-          </Route>
-
-          {/* Auth Layout */}
+          <Route path="/*" element={<AppLayout />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-
-          {/* Fallback Route */}
+          <Route path="/reset-password" element={<ChangePassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
       </Router>
-    </>
+    </QueryClientProvider>
   );
 }

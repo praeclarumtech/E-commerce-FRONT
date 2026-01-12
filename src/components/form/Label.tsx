@@ -4,10 +4,9 @@ import { clsx } from "clsx";
 interface LabelProps {
   htmlFor?: string;
   children: ReactNode;
-  className?: string;
 }
 
-const Label: FC<LabelProps> = ({ htmlFor, children, className }) => {
+const Label: FC<LabelProps> = ({ htmlFor, children }) => {
   return (
     <label
       htmlFor={htmlFor}
