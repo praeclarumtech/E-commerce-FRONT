@@ -1,15 +1,13 @@
-import clsx from "clsx";
-import { ReactNode } from "react";
+import { ButtonHTMLAttributes, ReactNode } from "react";
 
-interface ButtonProps {
+import clsx from "clsx";
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode; // Button text or content
   size?: "sm" | "md"; // Button size
   variant?: "primary" | "outline"; // Button variant
   startIcon?: ReactNode; // Icon before the text
   endIcon?: ReactNode; // Icon after the text
-  onClick?: () => void; // Click handler
-  disabled?: boolean; // Disabled state
-  className?: string; // Disabled state
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -18,36 +16,23 @@ const Button: React.FC<ButtonProps> = ({
   variant = "primary",
   startIcon,
   endIcon,
-  onClick,
-  className = "",
-  disabled = false,
+  ...rest
 }) => {
-  // Size Classes
-  const sizeClasses = {
-    sm: "px-4 py-3 text-sm",
-    md: "px-5 py-3.5 text-sm",
-  };
 
-  // Variant Classes
-  const variantClasses = {
-    primary: clsx(
-      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600",
-      "disabled:bg-brand-300"
-    ),
-
-    outline: clsx(
-      "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50",
-      "dark:bg-gray-800"
-    ),
-  };
+  const className = clsx("inline-flex items-center justify-center gap-2 rounded-lg transition",
+    {
+      "px-4 py-3 text-sm": size === "sm",
+      "px-5 py-3.5 text-sm": size === "md",
+      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300": variant === 'primary',
+      "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50": variant === "outline",
+      "cursor-not-allowed opacity-50": rest.disabled
+    },
+    rest.className)
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg transition ${className} ${sizeClasses[size]
-        } ${variantClasses[variant]} ${disabled ? "cursor-not-allowed opacity-50" : ""
-        }`}
-      onClick={onClick}
-      disabled={disabled}
+      {...rest}
+      className={className}
     >
       {startIcon && <span className="flex items-center">{startIcon}</span>}
       {children}

@@ -67,7 +67,6 @@ function SignUp() {
                                                 <Input
                                                     placeholder="Enter your first name"
                                                     type="text"
-                                                    id="name"
                                                     name="name"
                                                     onChange={formik.handleChange}
                                                     value={formik.values.name}
@@ -82,7 +81,6 @@ function SignUp() {
                                                 <Input
                                                     placeholder="Enter your last name"
                                                     type="text"
-                                                    id="lastName"
                                                     name="lastName"
                                                     onChange={formik.handleChange}
                                                     value={formik.values.lastName}
@@ -98,7 +96,6 @@ function SignUp() {
                                             <Input
                                                 placeholder="Enter your email"
                                                 type="email"
-                                                id="email"
                                                 name="email"
                                                 onChange={formik.handleChange}
                                                 value={formik.values.email}
@@ -128,7 +125,6 @@ function SignUp() {
                                                 <Input
                                                     placeholder="Enter your password"
                                                     type={showPassword ? "text" : "password"}
-                                                    id="password"
                                                     name="password"
                                                     onChange={formik.handleChange}
                                                     value={formik.values.password}

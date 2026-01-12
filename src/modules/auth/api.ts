@@ -11,6 +11,8 @@ import {
   SignInResponseData,
   SignUpRequestData,
   SignUpResponseData,
+  UpdateUserRequestData,
+  UpdateUserResponseData,
   VerifyMailRequertData,
   VerifyMailResponseData,
   VerifyOTPRequertData,
@@ -40,11 +42,16 @@ const verifyOTP = (data: VerifyOTPRequertData): Promise<AxiosResponse<VerifyOTPR
   return api.post('/users/verify-otp', data)
 }
 
+const updateUserData = (data: UpdateUserRequestData):Promise<AxiosResponse<UpdateUserResponseData>> => {
+  return api.put('/users/profile', data)
+}
+
 export {
   signin,
   signup,
   resetPassword,
   forgotPassword,
   verifymail,
-  verifyOTP
+  verifyOTP,
+  updateUserData,
 }

@@ -6,6 +6,7 @@ import AppSidebar from "./AppSidebar";
 import UserProfiles from "../pages/UserProfiles";
 import AuthDash from "../pages/Dashboard/Home";
 import withAuth from "../shared/component/withAuth";
+import { UserProvider } from "../context/UserDataContext";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -35,7 +36,9 @@ const LayoutContent: React.FC = () => {
 const AppLayout: React.FC = () => {
   return (
     <SidebarProvider>
-      <LayoutContent />
+      <UserProvider>
+        <LayoutContent />
+      </UserProvider>
     </SidebarProvider>
   );
 };
