@@ -8,7 +8,7 @@ const signinSchema = object().shape({
 });
 
 const signupSchema = object().shape({
-    name: string()
+    firstName: string()
         .min(2)
         .max(50, 'Too Long!')
         .required('Please enter you first name.'),

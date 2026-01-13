@@ -32,7 +32,7 @@ function SignUp() {
 
     const formik = useFormik<SignUpFormValues>({
         initialValues: {
-            name: "",
+            firstName: "",
             lastName: "",
             email: "",
             password: "",
@@ -67,11 +67,11 @@ function SignUp() {
                                                 <Input
                                                     placeholder="Enter your first name"
                                                     type="text"
-                                                    name="name"
+                                                    name="firstName"
                                                     onChange={formik.handleChange}
-                                                    value={formik.values.name}
+                                                    value={formik.values.firstName}
                                                 />
-                                                {formik.errors.name && formik.touched.name && <p className="text-error-500">{formik.errors.name}</p>}
+                                                {formik.errors.firstName && formik.touched.firstName && <p className="text-error-500">{formik.errors.firstName}</p>}
                                             </div>
                                             {/* <!-- Last Name --> */}
                                             <div className="sm:col-span-1">
