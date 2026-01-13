@@ -1,5 +1,5 @@
-import UserMetaCard from "../components/UserProfile/UserMetaCard";
-import UserInfoCard from "../components/UserProfile/UserInfoCard";
+import UserMetaCard from "../../../components/UserProfile/UserMetaCard";
+import UserInfoCard from "../../../components/UserProfile/UserInfoCard";
 
 export default function UserProfiles() {
   return (

@@ -1,12 +1,18 @@
+import { lazy } from "react";
+
+import { Route, Routes } from "react-router-dom";
+import clsx from "clsx";
+
+import withAuth from "../shared/component/withAuth";
+
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Route, Routes } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
-import UserProfiles from "../pages/UserProfiles";
-import AuthDash from "../pages/Dashboard/Home";
-import withAuth from "../shared/component/withAuth";
 import { UserProvider } from "../context/UserDataContext";
+
+const Profile = lazy(() => import("../modules/profile/components/Profile"));
+const Users = lazy(() => import("../modules/users/components/Users"));
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -18,14 +24,18 @@ const LayoutContent: React.FC = () => {
         <Backdrop />
       </div>
       <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
-          } ${isMobileOpen ? "ml-0" : ""}`}
-      >
+        className={clsx("flex-1 transition-all duration-300 ease-in-out", {
+          "lg:ml-[290px]": isExpanded || isHovered,
+          "lg:ml-[90px]": !isExpanded && !isHovered,
+          "ml-0": isMobileOpen,
+        })}>
         <AppHeader />
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
           <Routes>
-            <Route index element={<AuthDash />} />
-            <Route path="/profile" element={<UserProfiles />} />
+            <Route index element={<>Home</>} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="*" element={<>Not Found</>} />
           </Routes>
         </div>
       </div>

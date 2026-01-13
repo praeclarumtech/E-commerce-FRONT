@@ -11,14 +11,14 @@ import { setCookie } from "../../../shared/utils/auth";
 import withoutAuth from "../../../shared/component/withoutAuth";
 import { ECOMMERCE_ACCESS_TOKEN, ECOMMERCE_REFERSH_TOKEN } from "../../../shared/constant";
 
-import AuthLayout from "../../../pages/AuthPages/AuthLayout";
+import AuthLayout from "../../../shared/component/AuthLayout";
 import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import { signinSchema } from "../validations";
 import { signin } from "../api";
 import { SignInFormValues, } from "../type";
-import AuthHeading from "../../../pages/AuthPages/AuthHeading";
+import AuthHeading from "../../../shared/component/AuthHeading";
 
 function SignIn() {
 

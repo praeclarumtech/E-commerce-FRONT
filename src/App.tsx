@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 
@@ -13,7 +13,7 @@ import ForgotPassword from "./modules/auth/components/ForgotPassword";
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename="/e-comm">
         <ScrollToTop />
         <ToastContainer />
         <Routes>
@@ -22,6 +22,7 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ChangePassword />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="*" element={<>Not Found</>} />
         </Routes>
       </Router>
     </QueryClientProvider>

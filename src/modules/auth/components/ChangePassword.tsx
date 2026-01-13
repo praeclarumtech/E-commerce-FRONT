@@ -8,7 +8,7 @@ import { toast } from "react-toastify"
 import { AxiosError } from "axios"
 
 import Label from "../../../components/form/Label"
-import AuthLayout from "../../../pages/AuthPages/AuthLayout"
+import AuthLayout from "../../../shared/component/AuthLayout"
 import Button from "../../../components/ui/button/Button"
 import { resetPasswordSchema } from "../validations"
 import Input from "../../../components/form/input/InputField"
