@@ -13,9 +13,9 @@ import ForgotPassword from "./modules/auth/components/ForgotPassword";
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastContainer style={{ zIndex: 999999 }} />
       <Router basename="/e-comm">
         <ScrollToTop />
-        <ToastContainer />
         <Routes>
           <Route path="/*" element={<AppLayout />} />
           <Route path="/signin" element={<SignIn />} />

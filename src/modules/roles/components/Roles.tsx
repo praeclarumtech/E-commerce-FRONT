@@ -1,8 +1,8 @@
-import DataTable from "../../../shared/component/DataTable"
-import useUsers from "../hooks/useUsers";
-import DeleteUserModal from "./DeleteUserModal";
+import DataTable from "../../../shared/component/DataTable";
+import useRoles from "../hooks/useRoles";
+import DeleteRoleModal from "./DeleteRoleModal";
 
-function Users() {
+function Roles() {
     const { 
         data, 
         columns, 
@@ -10,11 +10,11 @@ function Users() {
         refetchData, 
         pagination,
         deleteModalOpen,
-        userToDelete,
+        roleToDelete,
         isDeleting,
         handleDeleteConfirm,
         handleDeleteClose,
-    } = useUsers();
+    } = useRoles();
 
     return (
         <div className="h-full">
@@ -22,20 +22,20 @@ function Users() {
                 data={data} 
                 columns={columns} 
                 isLoading={isLoading} 
-                title="Users"
+                title="Roles"
                 refetchData={refetchData} 
                 pagination={pagination}
-                addLink="/users/add"
+                addLink="/roles/add"
             />
-            <DeleteUserModal
+            <DeleteRoleModal
                 isOpen={deleteModalOpen}
                 onClose={handleDeleteClose}
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
-                userName={userToDelete ? `${userToDelete.firstName} ${userToDelete.lastName}` : undefined}
+                roleName={roleToDelete?.name}
             />
         </div>
-    )
+    );
 }
 
-export default Users
+export default Roles;

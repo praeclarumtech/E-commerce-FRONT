@@ -4,11 +4,11 @@ import { toast } from 'react-toastify';
 import { Pencil, Trash2 } from 'lucide-react';
 import { AxiosError } from 'axios';
 
-import { getUsers, deleteUser } from '../api';
+import { getRoles, deleteRole } from '../api';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useCallback, useState } from 'react';
 import moment from 'moment';
-import { User } from '../type';
+import { Role } from '../type';
 
 type FetchParams = {
     page?: number;
@@ -16,29 +16,29 @@ type FetchParams = {
     limit?: number;
 }
 
-function useUsers() {
+function useRoles() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [params, setParams] = useState<FetchParams>({ page: 1, limit: 10, search: '' });
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
 
     const { data, isLoading, isFetching, isRefetching, error } = useQuery({
-        queryKey: ['users', params],
-        queryFn: () => getUsers({ params: { page: params.page, limit: params.limit, search: params.search } }),
+        queryKey: ['roles', params],
+        queryFn: () => getRoles({ params: { page: params.page, limit: params.limit, search: params.search } }),
         select: (response) => response.data.data,
     });
 
     const { isPending: isDeleting, mutate: deleteMutate } = useMutation({
-        mutationFn: deleteUser,
+        mutationFn: deleteRole,
         onSuccess: () => {
-            toast.success("User deleted successfully!");
-            queryClient.invalidateQueries({ queryKey: ['users'] });
+            toast.success("Role deleted successfully!");
+            queryClient.invalidateQueries({ queryKey: ['roles'] });
             setDeleteModalOpen(false);
-            setUserToDelete(null);
+            setRoleToDelete(null);
         },
         onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error?.response?.data?.message || "Failed to delete user");
+            toast.error(error?.response?.data?.message || "Failed to delete role");
         }
     });
 
@@ -49,49 +49,40 @@ function useUsers() {
         }));
     }, []);
 
-    const handleEdit = useCallback((user: User) => {
-        navigate(`/users/edit/${user._id}`);
+    const handleEdit = useCallback((role: Role) => {
+        navigate(`/roles/edit/${role._id}`);
     }, [navigate]);
 
-    const handleDeleteClick = useCallback((user: User) => {
-        setUserToDelete(user);
+    const handleDeleteClick = useCallback((role: Role) => {
+        setRoleToDelete(role);
         setDeleteModalOpen(true);
     }, []);
 
     const handleDeleteConfirm = useCallback(() => {
-        if (userToDelete) {
-            deleteMutate(userToDelete._id);
+        if (roleToDelete) {
+            deleteMutate(roleToDelete._id);
         }
-    }, [userToDelete, deleteMutate]);
+    }, [roleToDelete, deleteMutate]);
 
     const handleDeleteClose = useCallback(() => {
         setDeleteModalOpen(false);
-        setUserToDelete(null);
+        setRoleToDelete(null);
     }, []);
 
-    const columns: ColumnDef<User>[] = useMemo(() => {
-        const _columns: ColumnDef<User>[] = [
+    const columns: ColumnDef<Role>[] = useMemo(() => {
+        const _columns: ColumnDef<Role>[] = [
             {
                 header: 'Sr No.',
                 cell: (info) => info.row.index + 1,
             },
             {
                 header: 'Name',
-                accessorKey: 'firstName',
-                cell: (info) => `${info.row.original.firstName} ${info.row.original.lastName}`,
-            },
-            {
-                header: 'Email',
-                accessorKey: 'email',
+                accessorKey: 'name',
                 cell: (info) => (
-                    <a href={`mailto:${info.row.original.email}`} className="text-[#465fff] hover:underline">
-                        {info.row.original.email}
-                    </a>
+                    <span className="font-medium text-gray-900 capitalize">
+                        {info.row.original.name}
+                    </span>
                 ),
-            },
-            {
-                header: 'Phone',
-                accessorKey: 'phone',
             },
             {
                 header: 'Status',
@@ -110,6 +101,11 @@ function useUsers() {
                 header: 'Created At',
                 accessorKey: 'createdAt',
                 cell: (info) => moment(info.row.original.createdAt).format('DD/MM/YYYY'),
+            },
+            {
+                header: 'Updated At',
+                accessorKey: 'updatedAt',
+                cell: (info) => moment(info.row.original.updatedAt).format('DD/MM/YYYY'),
             },
             {
                 header: 'Actions',
@@ -153,11 +149,11 @@ function useUsers() {
         },
         // Delete modal state
         deleteModalOpen,
-        userToDelete,
+        roleToDelete,
         isDeleting,
         handleDeleteConfirm,
         handleDeleteClose,
     };
 }
 
-export default useUsers
+export default useRoles;

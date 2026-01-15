@@ -3,19 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
 
 import {
-  LayoutDashboard,
-  FileText,
-  CheckCircle,
-  HelpCircle,
-  Gift,
-  Users,
-  Building2,
-  ChevronDown,
-  MoreHorizontal,
-  Lock,
+  LayoutDashboard, Users, ChevronDown, Lock,
+  Package,
+  FolderTree,
+  Shield
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
-import Avatar from "../components/ui/avatar/Avatar";
 import { useUser } from "../context/UserDataContext";
 import { removeCookie } from "../shared/utils/auth";
 import { ECOMMERCE_ACCESS_TOKEN } from "../shared/constant";
@@ -35,9 +28,24 @@ const allNavItems: NavItem[] = [
     path: "/",
   },
   {
+    icon: <Shield />,
+    name: "Roles",
+    path: "/roles",
+  },
+  {
     icon: <Users />,
     name: "Users",
     path: "/users",
+  },
+  {
+    icon: <FolderTree />,
+    name: "Categories",
+    path: "/categories",
+  },
+  {
+    icon: <Package />,
+    name: "Products",
+    path: "/products",
   }
 ];
 

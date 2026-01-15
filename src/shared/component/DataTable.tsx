@@ -22,6 +22,7 @@ type DataTableProps<T> = {
     data: T[];
     columns: ColumnDef<T>[];
     isLoading: boolean;
+    title?: string;
     addLink?: string;
     onExport?: () => void;
     refetchData?: (params: RefetchParams) => void;
@@ -34,6 +35,7 @@ function DataTable<T>({
     data,
     columns,
     isLoading,
+    title,
     addLink,
     onExport,
     refetchData,
@@ -103,22 +105,26 @@ function DataTable<T>({
             {/* Header Section */}
             <div className="relative border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white p-5 rounded-t-xl flex-shrink-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    {/* Left Side - Search Input */}
-                    <div className="relative">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Search className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            value={searchValue}
-                            onChange={handleSearchChange}
-                            placeholder="Search..."
-                            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 transition-all duration-200 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20 sm:w-64"
-                        />
-                    </div>
+                    {/* Left Side - Title */}
+                    {title && (
+                        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+                    )}
 
-                    {/* Right Side - Action Buttons */}
-                    <div className="flex items-center gap-2">
+                    {/* Right Side - Search & Action Buttons */}
+                    <div className="flex items-center gap-2 ml-auto">
+                        {/* Search Input */}
+                        <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={handleSearchChange}
+                                placeholder="Search..."
+                                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 transition-all duration-200 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20 sm:w-64"
+                            />
+                        </div>
                         {/* Column Visibility Dropdown */}
                         <div className="relative" ref={dropdownRef}>
                             <button
