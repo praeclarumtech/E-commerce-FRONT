@@ -19,4 +19,5 @@ export type PromiseResponseData<T> = Promise<AxiosResponse<ResponseData<T>>>;
 export type PaginationParams = Partial<{
     page: number;
     limit: number;
+    search: string;
 }>;

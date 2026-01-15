@@ -1,6 +1,6 @@
 import { ComponentType, FC } from "react";
 
-import { Navigate } from "react-router";
+import { Navigate } from "react-router-dom";
 
 import { ECOMMERCE_ACCESS_TOKEN } from "../constant";
 import { getCookie } from "../utils/auth";

@@ -2,16 +2,30 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getUsers } from '../api';
 import { ColumnDef } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import moment from 'moment';
 
-function useUsers() {
+type FetchParams = {
+    page?: number;
+    search?: string;
+    limit?: number;
+}
 
-    const { data: users, isLoading, isFetching, isRefetching, error } = useQuery({
-        queryKey: ['users'],
-        queryFn: () => getUsers({ params: { page: 1, limit: 10 } }),
-        select: (response) => response.data.data.items,
+function useUsers() {
+    const [params, setParams] = useState<FetchParams>({ page: 1, limit: 10, search: '' });
+
+    const { data, isLoading, isFetching, isRefetching, error } = useQuery({
+        queryKey: ['users', params],
+        queryFn: () => getUsers({ params: { page: params.page, limit: params.limit, search: params.search } }),
+        select: (response) => response.data.data,
     });
+
+    const refetchData = useCallback((newParams: FetchParams) => {
+        setParams(prev => ({
+            ...prev,
+            ...newParams,
+        }));
+    }, []);
 
     const columns: ColumnDef<any>[] = useMemo(() => {
         const _columns = [
@@ -60,10 +74,17 @@ function useUsers() {
 
     return (
         {
-            data: users || [],
+            data: data?.items || [],
             isLoading: isLoading || isFetching || isRefetching,
             error,
             columns,
+            refetchData,
+            pagination: {
+                currentPage: data?.page || 1,
+                totalPages: data?.totalPages || 1,
+                totalItems: data?.total || 0,
+                limit: params.limit || 10,
+            }
         }
     )
 }
