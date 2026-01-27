@@ -94,6 +94,15 @@ function useUsers() {
                 accessorKey: 'phone',
             },
             {
+                header: 'Role',
+                accessorKey: 'role',
+                cell: (info) => (
+                    <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 capitalize">
+                        {info.row.original.role?.name || 'N/A'}
+                    </span>
+                ),
+            },
+            {
                 header: 'Status',
                 accessorKey: 'isActive',
                 cell: (info) => (

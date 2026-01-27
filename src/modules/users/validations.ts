@@ -19,6 +19,8 @@ const baseUserSchema = {
     gender: string()
         .oneOf(['male', 'female', 'other'], 'Please select a valid gender')
         .required('Please select gender.'),
+    role: string()
+        .required('Please select a role.'),
 };
 
 export const addUserSchema = object().shape({

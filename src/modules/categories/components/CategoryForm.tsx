@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, X, Upload, Trash2 } from "lucide-react";
+import { Plus, X, Upload, Trash2, Pencil } from "lucide-react";
 
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
@@ -14,6 +14,7 @@ import {
   getCategoryById,
   updateCategory,
   addSubCategory,
+  updateSubCategory,
   deleteSubCategory,
 } from "../api";
 import { categorySchema, categoryWithSubsSchema } from "../validations";
@@ -52,6 +53,15 @@ function CategoryForm() {
   const [newSubDescription, setNewSubDescription] = useState("");
   const [newSubImage, setNewSubImage] = useState<File | null>(null);
   const [newSubImagePreview, setNewSubImagePreview] = useState<string | null>(null);
+  
+  // For edit mode - edit existing subcategory
+  const [editingSubId, setEditingSubId] = useState<string | null>(null);
+  const [editSubName, setEditSubName] = useState("");
+  const [editSubDescription, setEditSubDescription] = useState("");
+  const [editSubIsActive, setEditSubIsActive] = useState(true);
+  const [editSubImage, setEditSubImage] = useState<File | null>(null);
+  const [editSubImagePreview, setEditSubImagePreview] = useState<string | null>(null);
+  const [editSubExistingImage, setEditSubExistingImage] = useState<string | null>(null);
 
   // Fetch category data for edit mode
   const { data: categoryData, isLoading: isLoadingCategory } = useQuery({
@@ -81,6 +91,7 @@ function CategoryForm() {
       toast.success("Category updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["category", id] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      navigate("/categories");
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message || "Failed to update category");
@@ -104,6 +115,19 @@ function CategoryForm() {
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message || "Failed to add subcategory");
+    },
+  });
+
+  // Update subcategory mutation (edit mode only)
+  const { isPending: isUpdatingSub, mutate: updateSubMutate } = useMutation({
+    mutationFn: updateSubCategory,
+    onSuccess: () => {
+      toast.success("Subcategory updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["category", id] });
+      cancelEditSubCategory();
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error?.response?.data?.message || "Failed to update subcategory");
     },
   });
 
@@ -308,6 +332,72 @@ function CategoryForm() {
     },
     [id, deleteSubMutate]
   );
+
+  // Edit subcategory handlers
+  const startEditSubCategory = useCallback((sub: SubCategory) => {
+    setEditingSubId(sub._id || null);
+    setEditSubName(sub.name);
+    setEditSubDescription(sub.description || "");
+    setEditSubIsActive(sub.isActive !== false);
+    setEditSubImage(null);
+    setEditSubImagePreview(null);
+    setEditSubExistingImage(sub.image ? getImageUrl(sub.image) : null);
+    setShowAddSubForm(false);
+  }, []);
+
+  const cancelEditSubCategory = useCallback(() => {
+    setEditingSubId(null);
+    setEditSubName("");
+    setEditSubDescription("");
+    setEditSubIsActive(true);
+    if (editSubImagePreview) {
+      URL.revokeObjectURL(editSubImagePreview);
+    }
+    setEditSubImage(null);
+    setEditSubImagePreview(null);
+    setEditSubExistingImage(null);
+  }, [editSubImagePreview]);
+
+  const handleEditSubImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (editSubImagePreview) {
+          URL.revokeObjectURL(editSubImagePreview);
+        }
+        setEditSubImage(file);
+        setEditSubImagePreview(URL.createObjectURL(file));
+        setEditSubExistingImage(null);
+      }
+    },
+    [editSubImagePreview]
+  );
+
+  const removeEditSubImage = useCallback(() => {
+    if (editSubImagePreview) {
+      URL.revokeObjectURL(editSubImagePreview);
+    }
+    setEditSubImage(null);
+    setEditSubImagePreview(null);
+    setEditSubExistingImage(null);
+  }, [editSubImagePreview]);
+
+  const handleUpdateSubCategory = useCallback(() => {
+    if (!id || !editingSubId || !editSubName.trim()) {
+      toast.error("Please enter subcategory name");
+      return;
+    }
+    updateSubMutate({
+      categoryId: id,
+      subCategoryId: editingSubId,
+      data: {
+        name: editSubName,
+        description: editSubDescription || undefined,
+        isActive: editSubIsActive,
+      },
+      image: editSubImage || undefined,
+    });
+  }, [id, editingSubId, editSubName, editSubDescription, editSubIsActive, editSubImage, updateSubMutate]);
 
   const isPending = isCreating || isUpdating;
 
@@ -542,46 +632,140 @@ function CategoryForm() {
                 ) : (
                   <div className="space-y-3">
                     {existingSubCategories.map((sub) => (
-                      <div
-                        key={sub._id}
-                        className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
-                      >
-                        <div className="shrink-0">
-                          {sub.image ? (
-                            <img
-                              src={getImageUrl(sub.image)}
-                              alt={sub.name}
-                              className="h-12 w-12 rounded-lg object-cover border border-gray-200"
-                            />
-                          ) : (
-                            <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                              No img
+                      editingSubId === sub._id ? (
+                        // Edit Form for this subcategory
+                        <div
+                          key={sub._id}
+                          className="p-4 bg-amber-50 rounded-lg border border-amber-200"
+                        >
+                          <h4 className="text-sm font-medium text-gray-900 mb-3">Edit Subcategory</h4>
+                          <div className="flex items-start gap-4">
+                            <div className="shrink-0">
+                              {editSubImagePreview || editSubExistingImage ? (
+                                <div className="relative">
+                                  <img
+                                    src={editSubImagePreview || editSubExistingImage || ""}
+                                    alt="Subcategory"
+                                    className="h-16 w-16 rounded-lg object-cover border border-gray-200"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={removeEditSubImage}
+                                    className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white hover:border-brand-400 transition-colors">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleEditSubImageChange}
+                                    className="hidden"
+                                  />
+                                  <Upload className="h-5 w-5 text-gray-400" />
+                                </label>
+                              )}
                             </div>
-                          )}
+                            <div className="flex-1 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                              <div>
+                                <Input
+                                  placeholder="Subcategory name *"
+                                  type="text"
+                                  value={editSubName}
+                                  onChange={(e) => setEditSubName(e.target.value)}
+                                  maxLength={50}
+                                />
+                              </div>
+                              <div>
+                                <Input
+                                  placeholder="Description (optional)"
+                                  type="text"
+                                  value={editSubDescription}
+                                  onChange={(e) => setEditSubDescription(e.target.value)}
+                                  maxLength={255}
+                                />
+                              </div>
+                              <div>
+                                <Select
+                                  name="editSubIsActive"
+                                  options={activeOptions}
+                                  placeholder="Status"
+                                  value={editSubIsActive ? "true" : "false"}
+                                  onChange={(value) => setEditSubIsActive(value === "true")}
+                                />
+                              </div>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={cancelEditSubCategory}
+                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleUpdateSubCategory}
+                                disabled={isUpdatingSub || !editSubName.trim()}
+                                className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isUpdatingSub ? "Saving..." : "Save"}
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{sub.name}</p>
-                          {sub.description && (
-                            <p className="text-sm text-gray-500 truncate">{sub.description}</p>
-                          )}
+                      ) : (
+                        // Display row for this subcategory
+                        <div
+                          key={sub._id}
+                          className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <div className="shrink-0">
+                            {sub.image ? (
+                              <img
+                                src={getImageUrl(sub.image)}
+                                alt={sub.name}
+                                className="h-12 w-12 rounded-lg object-cover border border-gray-200"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                                No img
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{sub.name}</p>
+                            {sub.description && (
+                              <p className="text-sm text-gray-500 truncate">{sub.description}</p>
+                            )}
+                          </div>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              sub.isActive !== false
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {sub.isActive !== false ? "Active" : "Inactive"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => startEditSubCategory(sub)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => sub._id && handleDeleteSubCategory(sub._id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            sub.isActive !== false
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {sub.isActive !== false ? "Active" : "Inactive"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => sub._id && handleDeleteSubCategory(sub._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                      )
                     ))}
                   </div>
                 )

@@ -11,7 +11,7 @@ export function getUserById(id: string) {
 }
 
 export function createUser(data: CreateUserParams) {
-    return api.post<UserResponseData>('/users', data);
+    return api.post<UserResponseData>('/users/add', data);
 }
 
 export function updateUser({ id, data }: { id: string; data: UpdateUserParams }) {

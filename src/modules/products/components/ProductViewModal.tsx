@@ -1,6 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Modal } from "../../../components/ui/modal";
-import { Product } from "../type";
-import { X } from "lucide-react";
+import { Product, Variant, ProductCategory, ProductUser } from "../type";
+import { getVariantsByProduct } from "../variantApi";
+import { getImageUrl as getImageUrlUtil } from "../../../shared/constant";
+import { X, Package, ImageIcon, FolderTree, User } from "lucide-react";
 import moment from "moment";
 
 interface ProductViewModalProps {
@@ -10,6 +13,14 @@ interface ProductViewModalProps {
 }
 
 function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
+    // Fetch variants when modal opens
+    const { data: variants = [], isLoading: isLoadingVariants } = useQuery({
+        queryKey: ["variants", product?._id],
+        queryFn: () => getVariantsByProduct(product!._id),
+        select: (response) => response.data.data || [],
+        enabled: isOpen && !!product?._id,
+    });
+
     if (!product) return null;
 
     // Handle images - they might be objects or strings
@@ -23,9 +34,23 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
 
     const images = product.images?.map(getImageUrl).filter(Boolean) || [];
 
+    // Format variant attributes for display
+    const formatAttributes = (attributes: Record<string, string | number>) => {
+        return Object.entries(attributes)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(" | ");
+    };
+
+    // Get variant image
+    const getVariantImage = (variant: Variant) => {
+        if (!variant.images || variant.images.length === 0) return null;
+        const primaryImage = variant.images.find((img) => img.isPrimary);
+        return primaryImage?.imageUrl || variant.images[0]?.imageUrl;
+    };
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
-            <div className="relative">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl" showCloseButton={false}>
+            <div className="relative max-h-[90vh] overflow-y-auto">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -35,7 +60,7 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
                 </button>
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-5">
                     <h2 className="text-xl font-semibold text-gray-900 pr-8">
                         {product.name}
                     </h2>
@@ -84,14 +109,42 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
                             </p>
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500">Category</h3>
-                            <p className="mt-1 text-gray-900">
-                                {typeof product.categoryId === 'object' 
-                                    ? (product.categoryId as { name?: string })?.name || '-'
-                                    : product.categoryId || '-'
-                                }
-                            </p>
+                            <h3 className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                                <FolderTree className="h-3.5 w-3.5" />
+                                Category
+                            </h3>
+                            {typeof product.categoryId === 'object' ? (
+                                <div className="mt-1">
+                                    <p className="text-gray-900 font-medium">
+                                        {(product.categoryId as ProductCategory)?.name || '-'}
+                                    </p>
+                                    {(product.categoryId as ProductCategory)?.isSubCategory && 
+                                     (product.categoryId as ProductCategory)?.parentCategory && (
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            ↳ Subcategory of{' '}
+                                            <span className="font-medium text-gray-600">
+                                                {(product.categoryId as ProductCategory).parentCategory?.name}
+                                            </span>
+                                        </p>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="mt-1 text-gray-900">{product.categoryId || '-'}</p>
+                            )}
                         </div>
+                        {/* Created By */}
+                        {typeof product.userId === 'object' && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                                    <User className="h-3.5 w-3.5" />
+                                    Created By
+                                </h3>
+                                <p className="mt-1 text-gray-900">
+                                    {(product.userId as ProductUser)?.firstName}{' '}
+                                    {(product.userId as ProductUser)?.lastName}
+                                </p>
+                            </div>
+                        )}
                         <div>
                             <h3 className="text-sm font-medium text-gray-500">Created At</h3>
                             <p className="mt-1 text-gray-900">
@@ -115,10 +168,72 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
                             </p>
                         </div>
                     )}
+
+                    {/* Variants Section */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Package className="h-4 w-4 text-brand-600" />
+                            <h3 className="text-sm font-medium text-gray-500">
+                                Variants ({isLoadingVariants ? '...' : variants.length})
+                            </h3>
+                        </div>
+
+                        {isLoadingVariants ? (
+                            <div className="flex items-center justify-center py-6">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-500"></div>
+                            </div>
+                        ) : variants.length === 0 ? (
+                            <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <p className="text-gray-400 text-sm">No variants available</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {variants.map((variant: Variant) => {
+                                    const variantImg = getVariantImage(variant);
+                                    return (
+                                        <div
+                                            key={variant._id}
+                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
+                                        >
+                                            {/* Variant Image */}
+                                            <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white border border-gray-200">
+                                                {variantImg ? (
+                                                    <img
+                                                        src={getImageUrlUtil(variantImg)}
+                                                        alt="Variant"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                        <ImageIcon className="h-4 w-4" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Variant Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-gray-900 text-sm truncate">
+                                                    {formatAttributes(variant.attributes)}
+                                                </p>
+                                                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                                    <span>
+                                                        Price: <span className="font-medium text-gray-700">${variant.price || 0}</span>
+                                                    </span>
+                                                    <span>
+                                                        Stock: <span className="font-medium text-gray-700">{variant.stock || 0}</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end">
+                <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-3xl flex justify-end sticky bottom-0">
                     <button
                         onClick={onClose}
                         className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

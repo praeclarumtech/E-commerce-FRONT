@@ -9,12 +9,24 @@ import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import Select from "../../../components/form/Select";
 import ImageUpload from "../../../components/form/ImageUpload";
-import { createProduct, updateProduct, getProductById } from "../api";
+import VariantSection from "./VariantSection";
+import LocalVariantSection from "./LocalVariantSection";
+import { createProduct, updateProduct, getProductById, addProductImages, removeProductImage } from "../api";
+import { createVariant } from "../variantApi";
 import { getCategories } from "../../categories/api";
 import { productSchema } from "../validations";
-import { ProductFormValues, ENUM_PRODUCT_STATUS } from "../type";
+import { ProductFormValues, ENUM_PRODUCT_STATUS, VariantAttributes } from "../type";
 import { Category } from "../../categories/type";
 import { useUser } from "../../../context/UserDataContext";
+
+// Type for local variants (before product is created)
+export type LocalVariant = {
+  id: string; // temporary local ID
+  attributes: VariantAttributes;
+  price: number;
+  stock: number;
+  images: File[];
+};
 
 const statusOptions = [
   { value: ENUM_PRODUCT_STATUS.DRAFT, label: "Draft" },
@@ -38,14 +50,18 @@ function ProductForm() {
     { value: string; label: string }[]
   >([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  // Store original image objects from backend for tracking _id
+  // Store original image objects from backend for tracking _id and imageUrl
   const [existingImageObjects, setExistingImageObjects] = useState<
     { _id: string; imageUrl: string }[]
   >([]);
   // URLs for display in ImageUpload component
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  // Store image _ids for removal
-  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+  // Track removed image URLs to delete on save
+  const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
+  // Local variants for create mode (stored locally until product is created)
+  const [localVariants, setLocalVariants] = useState<LocalVariant[]>([]);
+  const [isCreatingVariants, setIsCreatingVariants] = useState(false);
+  const [isSavingImages, setIsSavingImages] = useState(false);
 
   const handleImagesChange = useCallback((files: File[]) => {
     setImageFiles(files);
@@ -53,9 +69,10 @@ function ProductForm() {
 
   const handleRemoveExistingImage = useCallback(
     (index: number) => {
+      // Get the original URL before removing
       const imageToRemove = existingImageObjects[index];
-      if (imageToRemove?._id) {
-        setRemovedImageIds((prev) => [...prev, imageToRemove._id]);
+      if (imageToRemove?.imageUrl) {
+        setRemovedImageUrls((prev) => [...prev, imageToRemove.imageUrl]);
       }
       setExistingImageObjects((prev) => prev.filter((_, i) => i !== index));
       setExistingImages((prev) => prev.filter((_, i) => i !== index));
@@ -63,11 +80,26 @@ function ProductForm() {
     [existingImageObjects]
   );
 
-  // Fetch product data for edit mode
+  // Local variant handlers for create mode
+  const handleAddLocalVariant = useCallback((variant: LocalVariant) => {
+    setLocalVariants((prev) => [...prev, variant]);
+  }, []);
+
+  const handleUpdateLocalVariant = useCallback((updatedVariant: LocalVariant) => {
+    setLocalVariants((prev) =>
+      prev.map((v) => (v.id === updatedVariant.id ? updatedVariant : v))
+    );
+  }, []);
+
+  const handleRemoveLocalVariant = useCallback((variantId: string) => {
+    setLocalVariants((prev) => prev.filter((v) => v.id !== variantId));
+  }, []);
+
+  // Fetch product data for edit mode - ensure id is valid
   const { data: productData, isLoading: isLoadingProduct } = useQuery({
     queryKey: ["product", id],
     queryFn: () => getProductById(id!),
-    enabled: isEditMode,
+    enabled: isEditMode && !!id && id !== "undefined",
     select: (response) => response.data.data,
   });
 
@@ -106,10 +138,59 @@ function ProductForm() {
 
   const { isPending: isCreating, mutate: createMutate } = useMutation({
     mutationFn: createProduct,
-    onSuccess: () => {
-      toast.success("Product created successfully!");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      navigate("/products");
+    onSuccess: async (response) => {
+      // Handle different possible response structures
+      const responseData = response.data as Record<string, unknown>;
+      const nestedData = responseData?.data as Record<string, unknown> | undefined;
+      
+      // Try to extract productId from various possible locations
+      const productId = 
+        nestedData?.productId as string | undefined ||
+        nestedData?._id as string | undefined ||
+        responseData?.productId as string | undefined ||
+        responseData?._id as string | undefined;
+      
+      // If there are local variants, create them now
+      if (localVariants.length > 0 && productId) {
+        setIsCreatingVariants(true);
+        try {
+          await Promise.all(
+            localVariants.map((variant) =>
+              createVariant({
+                productId,
+                attributes: variant.attributes,
+                price: variant.price,
+                stock: variant.stock,
+                images: variant.images.length > 0 ? variant.images : undefined,
+              })
+            )
+          );
+          toast.success(`Product created with ${localVariants.length} variant(s)!`);
+          queryClient.invalidateQueries({ queryKey: ["products"] });
+          navigate("/products");
+        } catch {
+          toast.warning("Product created but some variants failed to save. You can add them now.");
+          queryClient.invalidateQueries({ queryKey: ["products"] });
+          // Redirect to edit page so user can fix/add variants
+          navigate(`/products/edit/${productId}`);
+        } finally {
+          setIsCreatingVariants(false);
+        }
+      } else if (productId) {
+        // No variants added - redirect to edit page with helpful message
+        toast.success(
+          "Product created! You can now add variants.",
+          { autoClose: 5000 }
+        );
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+        // Redirect to edit page so user can add variants
+        navigate(`/products/edit/${productId}`);
+      } else {
+        // Fallback if productId not found in response
+        toast.success("Product created successfully!");
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+        navigate("/products");
+      }
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message || "Failed to create product");
@@ -120,6 +201,8 @@ function ProductForm() {
     mutationFn: updateProduct,
     onSuccess: () => {
       toast.success("Product updated successfully!");
+      setRemovedImageUrls([]);
+      setImageFiles([]);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", id] });
       navigate("/products");
@@ -141,22 +224,39 @@ function ProductForm() {
     validationSchema: productSchema,
     validateOnChange: false,
     enableReinitialize: true,
-    onSubmit: (data) => {
-      if (isEditMode) {
-        updateMutate({
-          id,
-          data: {
-            categoryId: data.categoryId,
-            name: data.name,
-            description: data.description,
-            price: data.price,
-            isActive: data.isActive,
-            status: data.status,
-            images: imageFiles,
-            removedImages:
-              removedImageIds.length > 0 ? removedImageIds : undefined,
-          },
-        });
+    onSubmit: async (data) => {
+      if (isEditMode && id) {
+        setIsSavingImages(true);
+        try {
+          // 1. Remove deleted images
+          if (removedImageUrls.length > 0) {
+            await Promise.all(
+              removedImageUrls.map((imageUrl) => removeProductImage(id, imageUrl))
+            );
+          }
+          
+          // 2. Add new images
+          if (imageFiles.length > 0) {
+            await addProductImages(id, imageFiles);
+          }
+          
+          // 3. Update product details (without images)
+          updateMutate({
+            id,
+            data: {
+              categoryId: data.categoryId,
+              name: data.name,
+              description: data.description,
+              price: data.price,
+              isActive: data.isActive,
+              status: data.status,
+            },
+          });
+        } catch (error) {
+          toast.error("Failed to update images");
+        } finally {
+          setIsSavingImages(false);
+        }
       } else {
         if (!user?._id) {
           toast.error("User not found. Please login again.");
@@ -207,7 +307,7 @@ function ProductForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productData]);
 
-  const isPending = isCreating || isUpdating;
+  const isPending = isCreating || isUpdating || isCreatingVariants || isSavingImages;
 
   if (isEditMode && isLoadingProduct) {
     return (
@@ -360,28 +460,51 @@ function ProductForm() {
               />
             </div>
 
+            {/* Variants Section */}
+            <div className="sm:col-span-2">
+              {isEditMode && id && id !== "undefined" ? (
+                <VariantSection productId={id} />
+              ) : (
+                <LocalVariantSection
+                  variants={localVariants}
+                  onAdd={handleAddLocalVariant}
+                  onUpdate={handleUpdateLocalVariant}
+                  onRemove={handleRemoveLocalVariant}
+                />
+              )}
+            </div>
+
             {/* Buttons */}
-            <div className="sm:col-span-2 flex items-center justify-end gap-3 pt-4">
+            <div className="sm:col-span-2 flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
               <button
                 type="button"
                 onClick={() => navigate("/products")}
-                className="flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 transition rounded-lg border border-gray-300 hover:bg-gray-50"
+                className="flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-600 transition hover:text-gray-800"
               >
-                Cancel
+                ← Back to Products
               </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center justify-center px-6 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPending
-                  ? isEditMode
-                    ? "Updating..."
-                    : "Creating..."
-                  : isEditMode
-                  ? "Update Product"
-                  : "Create Product"}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate("/products")}
+                  className="flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 transition rounded-lg border border-gray-300 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="flex items-center justify-center px-6 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPending
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                    ? "Update Product"
+                    : "Create Product"}
+                </button>
+              </div>
             </div>
           </div>
         </form>

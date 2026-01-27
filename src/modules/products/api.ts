@@ -60,7 +60,6 @@ type UpdateProductParams = {
         isActive?: boolean;
         status?: string;
         images?: File[];
-        removedImages?: string[];
     };
 };
 
@@ -90,13 +89,29 @@ export function updateProduct({ id, data }: UpdateProductParams) {
             formData.append('images', image);
         });
     }
-    if (data.removedImages && data.removedImages.length > 0) {
-        formData.append('removedImages', JSON.stringify(data.removedImages));
-    }
 
     return api.put<ProductResponseData>(`/products/${id}`, formData);
 }
 
 export function deleteProduct(id: string) {
     return api.delete(`/products/${id}`);
+}
+
+// Product Image Management
+export function addProductImages(productId: string, images: File[]) {
+    const formData = new FormData();
+    images.forEach((image) => {
+        formData.append('images', image);
+    });
+    return api.post(`/products/${productId}/images`, formData);
+}
+
+export function removeProductImage(productId: string, imageUrl: string) {
+    return api.delete(`/products/${productId}/images`, {
+        data: { imageUrl }
+    });
+}
+
+export function setProductPrimaryImage(productId: string, imageUrl: string) {
+    return api.patch(`/products/${productId}/images/primary`, { imageUrl });
 }

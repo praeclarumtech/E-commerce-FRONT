@@ -1,3 +1,10 @@
+export type UserRole = {
+    _id: string;
+    name: string;
+    isActive?: boolean;
+    accessModules?: string[];
+};
+
 export type User = {
     _id: string;
     firstName: string;
@@ -5,7 +12,7 @@ export type User = {
     email: string;
     phone: string;
     gender: string;
-    role: string;
+    role: UserRole;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -18,10 +25,10 @@ export type UserFormValues = {
     password?: string;
     phone: string;
     gender: string;
+    role: string;
 };
 
 export type CreateUserParams = UserFormValues & {
-    role: string;
     password: string;
 };
 
@@ -31,6 +38,7 @@ export type UpdateUserParams = {
     email?: string;
     phone?: string;
     gender?: string;
+    role?: string;
 };
 
 export type UserResponseData = {

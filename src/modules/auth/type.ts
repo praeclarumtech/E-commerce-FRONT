@@ -3,7 +3,8 @@ export type SignUpFormValues = {
     lastName: string,
     email: string,
     password: string,
-    phone: string
+    phone: string,
+    role: string
 }
 
 export type SignInFormValues = {
