@@ -12,6 +12,8 @@ import Select from "../../../components/form/Select";
 import { createUser, getUserById, updateUser } from "../api";
 import { addUserSchema, editUserSchema } from "../validations";
 import { UserFormValues } from "../type";
+import { getAllRoles } from "../../roles/api";
+import { Role } from "../../roles/type";
 
 const genderOptions = [
     { value: "male", label: "Male" },
@@ -25,6 +27,18 @@ function UserForm() {
     const queryClient = useQueryClient();
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
+
+    // Fetch roles for dropdown
+    const { data: roleOptions = [] } = useQuery({
+        queryKey: ['roles-dropdown'],
+        queryFn: getAllRoles,
+        select: (response) => {
+            const allRoles: Role[] = response.data.data?.items || [];
+            return allRoles
+                .filter((role) => role.isActive)
+                .map((role) => ({ value: role._id, label: role.name }));
+        },
+    });
 
     // Fetch user data for edit mode
     const { data: userData, isLoading: isLoadingUser } = useQuery({
@@ -67,6 +81,7 @@ function UserForm() {
             password: "",
             phone: "",
             gender: "",
+            role: "",
         },
         validationSchema: isEditMode ? editUserSchema : addUserSchema,
         validateOnChange: false,
@@ -81,13 +96,13 @@ function UserForm() {
                         email: data.email,
                         phone: data.phone,
                         gender: data.gender,
+                        role: data.role,
                     },
                 });
             } else {
                 createMutate({
                     ...data,
                     password: data.password!,
-                    role: "admin",
                 });
             }
         },
@@ -103,6 +118,7 @@ function UserForm() {
                 password: "",
                 phone: userData.phone || "",
                 gender: userData.gender || "",
+                role: userData.role?._id || "",
             });
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -213,6 +229,23 @@ function UserForm() {
                             />
                             {formik.errors.gender && formik.touched.gender && (
                                 <p className="text-error-500 text-sm mt-1">{formik.errors.gender}</p>
+                            )}
+                        </div>
+
+                        {/* Role */}
+                        <div>
+                            <Label>
+                                Role<span className="text-error-500">*</span>
+                            </Label>
+                            <Select
+                                name="role"
+                                options={roleOptions}
+                                placeholder="Select role"
+                                value={formik.values.role}
+                                onChange={(value) => formik.setFieldValue("role", value)}
+                            />
+                            {formik.errors.role && formik.touched.role && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.role}</p>
                             )}
                         </div>
 

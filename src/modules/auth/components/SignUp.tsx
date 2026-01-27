@@ -10,17 +10,33 @@ import AuthLayout from "../../../shared/component/AuthLayout";
 import { signup } from "../api";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
+import Select from "../../../components/form/Select";
 import withoutAuth from "../../../shared/component/withoutAuth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { signupSchema } from "../validations";
 import { SignUpFormValues } from "../type";
 import AuthHeading from "../../../shared/component/AuthHeading";
+import { getAllRoles } from "../../roles/api";
+import { Role } from "../../roles/type";
 
 function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
     // const [isChecked, setIsChecked] = useState(false);
 
     const navigate = useNavigate();
+
+    // Fetch roles for dropdown - excluding admin role
+    const { data: roles = [] } = useQuery({
+        queryKey: ['roles-dropdown'],
+        queryFn: getAllRoles,
+        select: (response) => {
+            const allRoles: Role[] = response.data.data?.items || [];
+            // Filter out admin role for signup
+            return allRoles
+                .filter((role) => role.name.toLowerCase() !== 'admin' && role.isActive)
+                .map((role) => ({ value: role._id, label: role.name }));
+        },
+    });
 
     const { isPending, mutate } = useMutation({
         mutationFn: signup,
@@ -36,7 +52,8 @@ function SignUp() {
             lastName: "",
             email: "",
             password: "",
-            phone: ""
+            phone: "",
+            role: ""
         },
         validationSchema: signupSchema,
         validateOnChange: false,
@@ -114,6 +131,21 @@ function SignUp() {
                                                 value={formik.values.phone}
                                             />
                                             {formik.errors.phone && formik.touched.phone && <p className="text-error-500">{formik.errors.phone}</p>}
+                                        </div>
+
+                                        {/* <!-- Role --> */}
+                                        <div>
+                                            <Label>
+                                                Role<span className="text-error-500">*</span>
+                                            </Label>
+                                            <Select
+                                                name="role"
+                                                options={roles}
+                                                placeholder="Select your role"
+                                                value={formik.values.role}
+                                                onChange={(value) => formik.setFieldValue("role", value)}
+                                            />
+                                            {formik.errors.role && formik.touched.role && <p className="text-error-500">{formik.errors.role}</p>}
                                         </div>
 
                                         {/* <!-- Password --> */}

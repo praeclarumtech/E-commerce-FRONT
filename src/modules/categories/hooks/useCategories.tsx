@@ -194,24 +194,32 @@ function useCategories() {
             {
                 header: 'Actions',
                 id: 'actions',
-                cell: (info) => (
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => handleEdit(info.row.original)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit"
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDeleteClick(info.row.original)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    </div>
-                ),
+                cell: (info) => {
+                    // Hide actions for subcategories
+                    const isSubCategory = (info.row.original as Category & { isSubCategory?: boolean }).isSubCategory;
+                    if (isSubCategory) {
+                        return <div className="w-16" />;
+                    }
+                    
+                    return (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleEdit(info.row.original)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit"
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                                onClick={() => handleDeleteClick(info.row.original)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
+                    );
+                },
             },
         ];
 

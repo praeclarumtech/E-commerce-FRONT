@@ -26,10 +26,27 @@ export type ProductResponseData = {
     };
 };
 
+export type ProductCategory = {
+    _id: string;
+    name: string;
+    isSubCategory?: boolean;
+    parentCategory?: {
+        _id: string;
+        name: string;
+    };
+};
+
+export type ProductUser = {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+};
+
 export type Product = {
     _id: string;
-    categoryId: string;
-    userId: string;
+    categoryId: string | ProductCategory;
+    userId: string | ProductUser;
     name: string;
     description?: string;
     price: number;
@@ -45,4 +62,50 @@ export type ProductListResponse = {
     page: number;
     totalPages: number;
     total: number;
+};
+
+// Variant Types
+export type VariantImage = {
+    _id?: string;
+    imageUrl: string;
+    isPrimary: boolean;
+};
+
+export type VariantAttributes = Record<string, string | number>;
+
+export type Variant = {
+    _id: string;
+    productId: string;
+    attributes: VariantAttributes;
+    price: number;
+    stock: number;
+    images?: VariantImage[];
+    isActive?: boolean;
+    isDeleted?: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateVariantParams = {
+    productId: string;
+    attributes: VariantAttributes;
+    price?: number;
+    stock?: number;
+    images?: File[];
+};
+
+export type UpdateVariantParams = {
+    variantId: string;
+    data: {
+        attributes?: VariantAttributes;
+        price?: number;
+        stock?: number;
+        images?: File[];
+    };
+};
+
+export type VariantFormValues = {
+    attributes: { key: string; value: string }[];
+    price: number;
+    stock: number;
 };

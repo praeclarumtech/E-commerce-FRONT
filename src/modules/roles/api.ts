@@ -25,3 +25,7 @@ export function deleteRole(id: string) {
 export function hardDeleteRole(id: string) {
     return api.delete(`/roles/${id}/permanent`);
 }
+
+export function getAllRoles() {
+    return api.get('/roles', { params: { limit: 100 } });
+}
