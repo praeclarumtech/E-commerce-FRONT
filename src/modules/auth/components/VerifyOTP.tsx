@@ -4,13 +4,13 @@ import { useFormik } from "formik";
 import { toast } from "react-toastify";
 import OTPInput from "react-otp-input";
 
-import AuthLayout from "../../../pages/AuthPages/AuthLayout";
+import AuthLayout from "../../../shared/component/AuthLayout";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
 import { verifyOTP } from "../api";
 import { VerifyOTPFormValues } from "../type";
-import AuthHeading from "../../../pages/AuthPages/AuthHeading";
+import AuthHeading from "../../../shared/component/AuthHeading";
 
 type VerifyOTPProps = {
     setStep: any

@@ -7,11 +7,11 @@ import { useMutation } from "@tanstack/react-query";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Button from "../../../components/ui/button/Button";
-import AuthLayout from "../../../pages/AuthPages/AuthLayout";
+import AuthLayout from "../../../shared/component/AuthLayout";
 import { verifymail } from "../api";
 import { VerifyMailFormValues } from "../type";
 import { verifyMail } from "../validations";
-import AuthHeading from "../../../pages/AuthPages/AuthHeading";
+import AuthHeading from "../../../shared/component/AuthHeading";
 
 type VerifyMailProps = {
     setStep: any,

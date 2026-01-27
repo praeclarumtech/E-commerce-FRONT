@@ -1,5 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
+import { toast } from "react-toastify";
+import { AxiosError } from "axios";
 
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
@@ -13,7 +15,13 @@ export default function UserInfoCard() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: updateUserData,
-    onSuccess:() => refetch()
+    onSuccess: () => {
+      toast.success("Profile updated successfully!");
+      refetch();
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error?.response?.data?.message || "Failed to update profile");
+    }
   })
 
   const formik = useFormik<UpdateUserDataFormValues>({

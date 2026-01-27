@@ -1,14 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
-import api from "../shared/api";
+
+import { useQuery } from "@tanstack/react-query";
+
+import { getProfile } from "../modules/profile/api";
+import { ProfileResponseData } from "../modules/profile/type";
 
 type UserType = {
-  user: any,
-  firstName: string,
-  lastName: string,
-  email: string,
-  phone: string,
-  role: string,
+  user: ProfileResponseData['data'] | null,
   refetch: () => void
 };
 
@@ -28,18 +26,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const { data: user, refetch } = useQuery({
     queryKey: ['repoData'],
-    queryFn: () => api.get("/users/profile")
+    queryFn: () => getProfile(),
   })
 
   return (
     <User.Provider
       value={{
-        user: user?.data?.data?.data || null,
-        firstName: user?.data?.data?.data || null,
-        lastName: user?.data?.data?.data || null,
-        email: user?.data?.data?.data || null,
-        phone: user?.data?.data?.data || null,
-        role: user?.data?.data?.data || null,
+        user: user?.data?.data || null,
         refetch
       }}
     >
@@ -47,4 +40,3 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     </User.Provider>
   );
 };
-// const { } = useUser()

@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import { AxiosError } from "axios";
 
-import AuthLayout from "../../../pages/AuthPages/AuthLayout";
+import AuthLayout from "../../../shared/component/AuthLayout";
 import { signup } from "../api";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
@@ -14,7 +14,7 @@ import withoutAuth from "../../../shared/component/withoutAuth";
 import { useMutation } from "@tanstack/react-query";
 import { signupSchema } from "../validations";
 import { SignUpFormValues } from "../type";
-import AuthHeading from "../../../pages/AuthPages/AuthHeading";
+import AuthHeading from "../../../shared/component/AuthHeading";
 
 function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
