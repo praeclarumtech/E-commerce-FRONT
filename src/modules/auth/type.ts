@@ -4,7 +4,7 @@ export type SignUpFormValues = {
     email: string,
     password: string,
     phone: string,
-    role: string
+    role: any
 }
 
 export type SignInFormValues = {

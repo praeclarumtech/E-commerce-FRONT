@@ -60,6 +60,7 @@ type UpdateProductParams = {
         isActive?: boolean;
         status?: string;
         images?: File[];
+        removedImages: string[]
     };
 };
 

@@ -31,7 +31,7 @@ function SignIn() {
       const { accessToken, refreshToken } = response?.data?.data?.tokens;
       setCookie(ECOMMERCE_ACCESS_TOKEN, accessToken);
       setCookie(ECOMMERCE_REFERSH_TOKEN, refreshToken);
-      navigate("/");
+      navigate("/e-comm");
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message)

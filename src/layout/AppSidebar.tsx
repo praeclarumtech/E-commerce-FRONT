@@ -6,7 +6,11 @@ import {
   LayoutDashboard, Users, ChevronDown, Lock,
   Package,
   FolderTree,
-  Shield
+  Shield,
+  Layers,
+  Globe,
+  MapPinned,
+  Building2
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useUser } from "../context/UserDataContext";
@@ -17,7 +21,7 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { name: string; path: string; icon: React.ReactNode; pro?: boolean; new?: boolean }[];
   roles?: string[]; // Roles that can see this menu item
 };
 
@@ -46,7 +50,28 @@ const allNavItems: NavItem[] = [
     icon: <Package />,
     name: "Products",
     path: "/products",
-  }
+  },
+  {
+    name: "Master-module",
+    icon: <Layers />,
+    subItems: [
+      {
+        name: "Country",
+        path: "/country",
+        icon: <Globe />,
+      },
+      {
+        name: "State",
+        path: "/state",
+        icon: <MapPinned />,
+      },
+      {
+        name: "city",
+        path: "/city",
+        icon: <Building2 />,
+      },
+    ],
+  },
 ];
 
 function AppSidebar() {
@@ -61,7 +86,7 @@ function AppSidebar() {
       return true;
     }
     // If user role is in the allowed roles, show the item
-    return user?.role && item.roles.includes(user.role);
+    return user?.role && item.roles.includes(user.role.name);
   });
 
 
@@ -228,7 +253,7 @@ function AppSidebar() {
                         }
                       )}
                     >
-                      {subItem.name}
+                      {subItem.icon}{subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span
@@ -286,15 +311,15 @@ function AppSidebar() {
       >
         <div
           className={clsx(
-            "py-6 flex border-b border-gray-100",
             {
+            "py-6 flex border-b border-gray-100":!isMobileOpen,
               "lg:justify-center": !isExpanded && !isHovered,
               "justify-start": isExpanded || isHovered
             }
           )}
         >
-          {(isExpanded || isHovered || isMobileOpen) ? (
-            <>Logo</>
+          {( isMobileOpen) ? (
+            <></>
           ) : (
             <>Logo</>
           )}

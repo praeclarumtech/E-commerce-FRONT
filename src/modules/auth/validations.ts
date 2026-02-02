@@ -24,8 +24,6 @@ const signupSchema = object().shape({
         .min(10)
         .max(15)
         .required('Phone number is required.'),
-    role: string()
-        .required('Please select a role.'),
 });
 
 const resetPasswordSchema = object().shape({

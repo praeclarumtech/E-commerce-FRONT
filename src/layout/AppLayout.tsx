@@ -10,6 +10,12 @@ import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import { UserProvider } from "../context/UserDataContext";
+import CountryForm from "../masterModule/country/component/CountryForm";
+import Country from "../masterModule/country/component/Country";
+import StateForm from "../masterModule/state/comonent/StateForm";
+import State from "../masterModule/state/comonent/State";
+import CityForm from "../masterModule/city/component/CityForm";
+import City from "../masterModule/city/component/City";
 
 const Profile = lazy(() => import("../modules/profile/components/Profile"));
 const Users = lazy(() => import("../modules/users/components/Users"));
@@ -63,6 +69,15 @@ const LayoutContent: React.FC = () => {
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/add" element={<RoleForm />} />
             <Route path="/roles/edit/:id" element={<RoleForm />} />
+            <Route path="/country" element={<Country />} />
+            <Route path="/country/add" element={<CountryForm />} />
+            <Route path="/country/edit/:id" element={<CountryForm />} />
+            <Route path="/state" element={<State />} />
+            <Route path="/state/add" element={<StateForm />} />
+            <Route path="/state/edit/:id" element={<StateForm />} />
+            <Route path="/city" element={<City />} />
+            <Route path="/city/add" element={<CityForm />} />
+            <Route path="/city/edit/:id" element={<CityForm />} />
             <Route path="*" element={<>Not Found</>} />
           </Routes>
         </div>

@@ -20,4 +20,5 @@ export type PaginationParams = Partial<{
     page: number;
     limit: number;
     search: string;
+    countryId: string
 }>;

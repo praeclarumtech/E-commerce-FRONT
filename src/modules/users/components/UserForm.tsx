@@ -193,6 +193,7 @@ function UserForm() {
                                 name="email"
                                 onChange={formik.handleChange}
                                 value={formik.values.email}
+                                // disabled
                             />
                             {formik.errors.email && formik.touched.email && (
                                 <p className="text-error-500 text-sm mt-1">{formik.errors.email}</p>

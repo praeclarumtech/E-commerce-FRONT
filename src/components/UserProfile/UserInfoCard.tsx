@@ -76,7 +76,7 @@ export default function UserInfoCard() {
                 className="text-sm font-medium text-gray-800"
                 name="email"
                 value={formik.values.email}
-                disabled
+                readOnly
               />
             </div>
 

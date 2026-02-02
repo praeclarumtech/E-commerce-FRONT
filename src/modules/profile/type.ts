@@ -6,6 +6,11 @@ export type ProfileResponseData = {
         lastName: string,
         email: string,
         phone: string,
-        role: string,
+        role: {
+            _id:string,
+            isActive: boolean,
+            name: string,
+            accessModules:[]
+        },
     }>
 }

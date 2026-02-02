@@ -53,7 +53,7 @@ function SignUp() {
             email: "",
             password: "",
             phone: "",
-            role: ""
+            role:"",
         },
         validationSchema: signupSchema,
         validateOnChange: false,
@@ -145,7 +145,6 @@ function SignUp() {
                                                 value={formik.values.role}
                                                 onChange={(value) => formik.setFieldValue("role", value)}
                                             />
-                                            {formik.errors.role && formik.touched.role && <p className="text-error-500">{formik.errors.role}</p>}
                                         </div>
 
                                         {/* <!-- Password --> */}
