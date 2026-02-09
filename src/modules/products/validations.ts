@@ -4,6 +4,8 @@ import { ENUM_PRODUCT_STATUS } from "./type";
 export const productSchema = object().shape({
     categoryId: string()
         .required('Please select a category.'),
+    subCategoryId: string()
+        .required('Please select a category.'),
     name: string()
         .min(2, 'Product name must be at least 2 characters')
         .max(20, 'Product name cannot exceed 20 characters')

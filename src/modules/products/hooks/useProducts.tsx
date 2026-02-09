@@ -29,9 +29,9 @@ function useProducts() {
     const { data, isLoading, isFetching, isRefetching, error } = useQuery({
         queryKey: ['products', params],
         queryFn: () => getProducts({ params: { page: params.page, limit: params.limit, search: params.search } }),
-        select: (response) => response.data.data.data,
+        select: (response) => response.data.data,
     });
-
+console.log("data",data)
     const deleteMutation = useMutation({
         mutationFn: deleteProduct,
         onSuccess: () => {

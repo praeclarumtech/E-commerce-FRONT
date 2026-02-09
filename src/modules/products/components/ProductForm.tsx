@@ -11,11 +11,12 @@ import Input from "../../../components/form/input/InputField";
 import Select from "../../../components/form/Select";
 import ImageUpload from "../../../components/form/ImageUpload";
 import { createProduct, updateProduct, getProductById } from "../api";
-import { getCategories } from "../../categories/api";
+import { getCategories, getSubCategoryById } from "../../categories/api";
 import { productSchema } from "../validations";
 import { ProductFormValues, ENUM_PRODUCT_STATUS } from "../type";
-import { Category } from "../../categories/type";
+import { Category, SubCategory } from "../../categories/type";
 import { useUser } from "../../../context/UserDataContext";
+import { Upload, X } from "lucide-react";
 
 const statusOptions = [
   { value: ENUM_PRODUCT_STATUS.DRAFT, label: "Draft" },
@@ -38,6 +39,9 @@ function ProductForm() {
   const [categoryOptions, setCategoryOptions] = useState<
     { value: string; label: string }[]
   >([]);
+  const [subCategoryOptions, setSubCategoryOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   // Store original image objects from backend for tracking _id
   const [existingImageObjects, setExistingImageObjects] = useState<
@@ -47,6 +51,11 @@ function ProductForm() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   // Store image _ids for removal
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+
+    const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
+    const [existingImage, setExistingImage] = useState<string | null>(null);
+
+
 
   const handleImagesChange = useCallback((files: File[]) => {
     setImageFiles(files);
@@ -79,6 +88,13 @@ function ProductForm() {
     select: (response) => response.data.data,
   });
 
+  // Fetch subCategories
+  const { data: subCategoriesData } = useQuery({
+    queryKey: ["subCategories", { limit: 100 }],
+    queryFn: () => getSubCategoryById({ params: { limit: 100 } }),
+    select: (response) => response.data.data,
+  });
+
   useEffect(() => {
     if (categoriesData?.items) {
       const options: { value: string; label: string }[] = [];
@@ -89,21 +105,36 @@ function ProductForm() {
           label: cat.name,
         });
 
-        if (cat.subCategories && cat.subCategories.length > 0) {
-          cat.subCategories.forEach((sub) => {
-            if (sub._id) {
-              options.push({
-                value: sub._id,
-                label: `  ↳ ${sub.name}`,
-              });
-            }
-          });
-        }
+        // if (cat.subCategories && cat.subCategories.length > 0) {
+        //   cat.subCategories.forEach((sub) => {
+        //     if (sub._id) {
+        //       options.push({
+        //         value: sub._id,
+        //         label: `  ↳ ${sub.name}`,
+        //       });
+        //     }
+        //   });
+        // }
       });
 
       setCategoryOptions(options);
     }
   }, [categoriesData]);
+
+   useEffect(() => {
+    if (subCategoriesData?.items) {
+      const options: { value: string; label: string }[] = [];
+
+      subCategoriesData.items.forEach((sub: SubCategory) => {
+        options.push({
+          value: sub._id,
+          label: sub.name,
+        });
+      });
+
+      setSubCategoryOptions(options);
+    }
+  }, [subCategoryOptions]);
 
   const { isPending: isCreating, mutate: createMutate } = useMutation({
     mutationFn: createProduct,
@@ -133,6 +164,7 @@ function ProductForm() {
   const formik = useFormik<ProductFormValues>({
     initialValues: {
       categoryId: "",
+      subCategoryId: "",
       name: "",
       description: "",
       price: 0,
@@ -148,6 +180,7 @@ function ProductForm() {
           id,
           data: {
             categoryId: data.categoryId,
+            subCategoryId: data.subCategoryId,
             name: data.name,
             description: data.description,
             price: data.price,
@@ -181,8 +214,15 @@ function ProductForm() {
           ? (productData.categoryId as { _id?: string })?._id
           : productData.categoryId;
 
+          // Handle subCategoryId being an object or string
+      const subCategoryIdValue =
+        typeof productData.subCategoryId === "object"
+          ? (productData.subCategoryId as { _id?: string })?._id
+          : productData.subCategoryId;
+
       formik.setValues({
         categoryId: categoryIdValue || "",
+        subCategoryId: subCategoryIdValue || "",
         name: productData.name || "",
         description: productData.description || "",
         price: productData.price || 0,
@@ -273,6 +313,25 @@ function ProductForm() {
               )}
             </div>
 
+            {/* SubCategory */}
+            <div>
+              <Label>
+                SubCategory<span className="text-error-500">*</span>
+              </Label>
+              <Select
+                name="subCategoryId"
+                options={subCategoryOptions}
+                placeholder="Select subcategory"
+                value={formik.values.subCategoryId}
+                onChange={(value) => formik.setFieldValue("subCategoryId", value)}
+              />
+              {formik.errors.subCategoryId && formik.touched.subCategoryId && (
+                <p className="text-error-500 text-sm mt-1">
+                  {formik.errors.subCategoryId}
+                </p>
+              )}
+            </div>
+
             {/* Price */}
             <div>
               <Label>
@@ -324,6 +383,39 @@ function ProductForm() {
                 }
               />
             </div>
+
+            {/* Product Logo */}
+              <div>
+                <Label>Product Logo</Label>
+                <div className="flex items-center gap-4">
+                  {logoImagePreview || existingImage? (
+                    <div className="relative">
+                      <img
+                        src={logoImagePreview || existingImage || ""}
+                        alt="Category preview"
+                        className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        // onClick={removeLogoImage}
+                        className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        // onChange={handleLogoImageChange}
+                        className="hidden"
+                      />
+                      <Upload className="h-6 w-6 text-gray-400" />
+                    </label>
+                  )}
+                </div>
+              </div>
 
             {/* Description - Full Width */}
             <div className="sm:col-span-2">

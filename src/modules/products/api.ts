@@ -15,6 +15,7 @@ export function getProductById(id: string) {
 
 type CreateProductParams = {
     categoryId: string;
+    subCategoryId: string;
     userId: string;
     name: string;
     description?: string;
@@ -28,6 +29,7 @@ export function createProduct(data: CreateProductParams) {
     const formData = new FormData();
     
     formData.append('categoryId', data.categoryId);
+    formData.append('subCategoryId', data.subCategoryId);
     formData.append('userId', data.userId);
     formData.append('name', data.name);
     formData.append('price', String(data.price));
@@ -54,6 +56,7 @@ type UpdateProductParams = {
     id: string;
     data: {
         categoryId?: string;
+        subCategoryId?: string;
         name?: string;
         description?: string;
         price?: number;
@@ -69,6 +72,9 @@ export function updateProduct({ id, data }: UpdateProductParams) {
     
     if (data.categoryId) {
         formData.append('categoryId', data.categoryId);
+    }
+    if (data.subCategoryId) {
+        formData.append('subCategoryId', data.subCategoryId);
     }
     if (data.name) {
         formData.append('name', data.name);

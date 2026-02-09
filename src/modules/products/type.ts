@@ -6,6 +6,7 @@ export enum ENUM_PRODUCT_STATUS {
 
 export type ProductFormValues = {
     categoryId: string;
+    subCategoryId: string;
     name: string;
     description?: string;
     price: number;
@@ -29,13 +30,17 @@ export type ProductResponseData = {
 export type ProductCategory = {
     _id: string;
     name: string;
-    isSubCategory?: boolean;
-    parentCategory?: {
-        _id: string;
-        name: string;
-    };
+    // isSubCategory?: boolean;
+    // parentCategory?: {
+    //     _id: string;
+    //     name: string;
+    // };
 };
 
+export type ProductSubCategory = {
+    _id: string;
+    name: string;
+}
 export type ProductUser = {
     _id: string;
     firstName: string;
@@ -46,6 +51,7 @@ export type ProductUser = {
 export type Product = {
     _id: string;
     categoryId: string | ProductCategory;
+    subCategoryId: string | ProductSubCategory;
     userId: string | ProductUser;
     name: string;
     description?: string;

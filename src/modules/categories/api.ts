@@ -18,8 +18,8 @@ export function getCategoryById(categoryId: string) {
 }
 
 // Get subcategory
-export function getSubCategoryById(categoryId: string, subCategoryId: string) {
-    return api.get(`/categories/${categoryId}/${subCategoryId}`);
+export function getSubCategoryById({ params }: { params: PaginationParams }) {
+    return api.get('/categories',{ params });
 }
 
 // Create category (with optional subcategories)
