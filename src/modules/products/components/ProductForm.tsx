@@ -11,10 +11,10 @@ import Input from "../../../components/form/input/InputField";
 import Select from "../../../components/form/Select";
 import ImageUpload from "../../../components/form/ImageUpload";
 import { createProduct, updateProduct, getProductById } from "../api";
-import { getCategories, getSubCategoryById } from "../../categories/api";
+import { getCategories } from "../../categories/api";
 import { productSchema } from "../validations";
 import { ProductFormValues, ENUM_PRODUCT_STATUS } from "../type";
-import { Category, SubCategory } from "../../categories/type";
+import { Category } from "../../categories/type";
 import { useUser } from "../../../context/UserDataContext";
 import { Upload, X } from "lucide-react";
 
@@ -36,12 +36,14 @@ function ProductForm() {
   const { user } = useUser();
   const isEditMode = !!id;
 
+  // Single dropdown: categories and subcategories (subcategories indented under parent)
   const [categoryOptions, setCategoryOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const [subCategoryOptions, setSubCategoryOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
+  // Map dropdown value -> { categoryId, subCategoryId } for applying selection
+  const [categoryValueMap, setCategoryValueMap] = useState<
+    Record<string, { categoryId: string; subCategoryId: string }>
+  >({});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   // Store original image objects from backend for tracking _id
   const [existingImageObjects, setExistingImageObjects] = useState<
@@ -52,8 +54,12 @@ function ProductForm() {
   // Store image _ids for removal
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
-    const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
-    const [existingImage, setExistingImage] = useState<string | null>(null);
+  const [logoImagePreview, setLogoImagePreview] = useState<string | null>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
+  const [brandLogoFile, setBrandLogoFile] = useState<File | null>(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+  const [existingBannerImage, setExistingBannerImage] = useState<string | null>(null);
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
 
 
 
@@ -73,6 +79,42 @@ function ProductForm() {
     [existingImageObjects]
   );
 
+  const handleLogoImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setBrandLogoFile(file);
+        setLogoImagePreview(URL.createObjectURL(file));
+      }
+      e.target.value = "";
+    },
+    []
+  );
+
+  const removeLogoImage = useCallback(() => {
+    setBrandLogoFile(null);
+    setLogoImagePreview(null);
+    setExistingImage(null);
+  }, []);
+
+  const handleBannerImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setBannerImageFile(file);
+        setBannerImagePreview(URL.createObjectURL(file));
+      }
+      e.target.value = "";
+    },
+    []
+  );
+
+  const removeBannerImage = useCallback(() => {
+    setBannerImageFile(null);
+    setBannerImagePreview(null);
+    setExistingBannerImage(null);
+  }, []);
+
   // Fetch product data for edit mode
   const { data: productData, isLoading: isLoadingProduct } = useQuery({
     queryKey: ["product", id],
@@ -88,53 +130,37 @@ function ProductForm() {
     select: (response) => response.data.data,
   });
 
-  // Fetch subCategories
-  const { data: subCategoriesData } = useQuery({
-    queryKey: ["subCategories", { limit: 100 }],
-    queryFn: () => getSubCategoryById({ params: { limit: 100 } }),
-    select: (response) => response.data.data,
-  });
-
+  // Build single dropdown: categories and subcategories (subcategories under parent with ↳)
   useEffect(() => {
     if (categoriesData?.items) {
       const options: { value: string; label: string }[] = [];
+      const valueMap: Record<string, { categoryId: string; subCategoryId: string }> = {};
 
       categoriesData.items.forEach((cat: Category) => {
         options.push({
-          value: cat._id,
+          value: `c_${cat._id}`,
           label: cat.name,
         });
+        valueMap[`c_${cat._id}`] = { categoryId: cat._id, subCategoryId: "" };
 
-        // if (cat.subCategories && cat.subCategories.length > 0) {
-        //   cat.subCategories.forEach((sub) => {
-        //     if (sub._id) {
-        //       options.push({
-        //         value: sub._id,
-        //         label: `  ↳ ${sub.name}`,
-        //       });
-        //     }
-        //   });
-        // }
+        if (cat.subCategories && cat.subCategories.length > 0) {
+          cat.subCategories.forEach((sub) => {
+            if (sub._id) {
+              const val = `s_${cat._id}|${sub._id}`;
+              options.push({
+                value: val,
+                label: `  ↳ ${sub.name}`,
+              });
+              valueMap[val] = { categoryId: cat._id, subCategoryId: sub._id };
+            }
+          });
+        }
       });
 
       setCategoryOptions(options);
+      setCategoryValueMap(valueMap);
     }
   }, [categoriesData]);
-
-   useEffect(() => {
-    if (subCategoriesData?.items) {
-      const options: { value: string; label: string }[] = [];
-
-      subCategoriesData.items.forEach((sub: SubCategory) => {
-        options.push({
-          value: sub._id,
-          label: sub.name,
-        });
-      });
-
-      setSubCategoryOptions(options);
-    }
-  }, [subCategoryOptions]);
 
   const { isPending: isCreating, mutate: createMutate } = useMutation({
     mutationFn: createProduct,
@@ -170,6 +196,11 @@ function ProductForm() {
       price: 0,
       isActive: true,
       status: ENUM_PRODUCT_STATUS.DRAFT,
+      brandName: "",
+      brandLogo: "",
+      bannerImage: "",
+      rating: undefined as number | undefined,
+      comment: "",
     },
     validationSchema: productSchema,
     validateOnChange: false,
@@ -180,7 +211,7 @@ function ProductForm() {
           id,
           data: {
             categoryId: data.categoryId,
-            subCategoryId: data.subCategoryId,
+            subCategoryId: data.subCategoryId || undefined,
             name: data.name,
             description: data.description,
             price: data.price,
@@ -189,6 +220,11 @@ function ProductForm() {
             images: imageFiles,
             removedImages:
               removedImageIds.length > 0 ? removedImageIds : [],
+            brandName: data.brandName,
+            brandLogo: brandLogoFile ?? data.brandLogo,
+            bannerImage: bannerImageFile ?? data.bannerImage,
+            rating: data.rating,
+            comment: data.comment,
           },
         });
       } else {
@@ -197,9 +233,20 @@ function ProductForm() {
           return;
         }
         createMutate({
-          ...data,
+          categoryId: data.categoryId,
+          ...(data.subCategoryId && { subCategoryId: data.subCategoryId }),
           userId: user._id,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          isActive: data.isActive,
+          status: data.status,
           images: imageFiles,
+          brandName: data.brandName,
+          brandLogo: brandLogoFile ?? undefined,
+          bannerImage: bannerImageFile ?? undefined,
+          rating: data.rating,
+          comment: data.comment,
         });
       }
     },
@@ -228,7 +275,18 @@ function ProductForm() {
         price: productData.price || 0,
         isActive: productData.isActive ?? true,
         status: productData.status || ENUM_PRODUCT_STATUS.DRAFT,
+        brandName: productData.brandName ?? "",
+        brandLogo: productData.brandLogo ?? "",
+        bannerImage: productData.bannerImage ?? "",
+        rating: productData.rating ?? undefined,
+        comment: productData.comment ?? "",
       });
+      if (productData.brandLogo) {
+        setExistingImage(productData.brandLogo);
+      }
+      if (productData.bannerImage) {
+        setExistingBannerImage(productData.bannerImage);
+      }
       if (productData.images && productData.images.length > 0) {
         // Cast to proper type since backend returns objects, not strings
         const images = productData.images as unknown as {
@@ -249,6 +307,25 @@ function ProductForm() {
   }, [productData]);
 
   const isPending = isCreating || isUpdating;
+
+  // Selected value for the single category+subcategory dropdown
+  const selectedCategoryValue =
+    formik.values.subCategoryId && formik.values.categoryId
+      ? `s_${formik.values.categoryId}|${formik.values.subCategoryId}`
+      : formik.values.categoryId
+        ? `c_${formik.values.categoryId}`
+        : "";
+
+  const handleCategoryOptionChange = useCallback(
+    (value: string) => {
+      const mapped = categoryValueMap[value];
+      if (mapped) {
+        formik.setFieldValue("categoryId", mapped.categoryId);
+        formik.setFieldValue("subCategoryId", mapped.subCategoryId);
+      }
+    },
+    [categoryValueMap, formik]
+  );
 
   if (isEditMode && isLoadingProduct) {
     return (
@@ -294,7 +371,7 @@ function ProductForm() {
               )}
             </div>
 
-            {/* Category */}
+            {/* Category / SubCategory (single dropdown: categories and subcategories) */}
             <div>
               <Label>
                 Category<span className="text-error-500">*</span>
@@ -302,32 +379,13 @@ function ProductForm() {
               <Select
                 name="categoryId"
                 options={categoryOptions}
-                placeholder="Select category"
-                value={formik.values.categoryId}
-                onChange={(value) => formik.setFieldValue("categoryId", value)}
+                placeholder="Select category or subcategory"
+                value={selectedCategoryValue}
+                onChange={handleCategoryOptionChange}
               />
               {formik.errors.categoryId && formik.touched.categoryId && (
                 <p className="text-error-500 text-sm mt-1">
                   {formik.errors.categoryId}
-                </p>
-              )}
-            </div>
-
-            {/* SubCategory */}
-            <div>
-              <Label>
-                SubCategory<span className="text-error-500">*</span>
-              </Label>
-              <Select
-                name="subCategoryId"
-                options={subCategoryOptions}
-                placeholder="Select subcategory"
-                value={formik.values.subCategoryId}
-                onChange={(value) => formik.setFieldValue("subCategoryId", value)}
-              />
-              {formik.errors.subCategoryId && formik.touched.subCategoryId && (
-                <p className="text-error-500 text-sm mt-1">
-                  {formik.errors.subCategoryId}
                 </p>
               )}
             </div>
@@ -384,38 +442,115 @@ function ProductForm() {
               />
             </div>
 
-            {/* Product Logo */}
-              <div>
-                <Label>Product Logo</Label>
-                <div className="flex items-center gap-4">
-                  {logoImagePreview || existingImage? (
-                    <div className="relative">
-                      <img
-                        src={logoImagePreview || existingImage || ""}
-                        alt="Category preview"
-                        className="h-20 w-20 rounded-lg object-cover border border-gray-200"
-                      />
-                      <button
-                        type="button"
-                        // onClick={removeLogoImage}
-                        className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        // onChange={handleLogoImageChange}
-                        className="hidden"
-                      />
-                      <Upload className="h-6 w-6 text-gray-400" />
-                    </label>
-                  )}
-                </div>
+            {/* Brand Name */}
+            <div>
+              <Label>Brand Name</Label>
+              <Input
+                placeholder="Enter brand name"
+                type="text"
+                name="brandName"
+                onChange={formik.handleChange}
+                value={formik.values.brandName ?? ""}
+              />
+            </div>
+
+            {/* Rating */}
+            <div>
+              <Label>Rating</Label>
+              <Input
+                placeholder="0-5"
+                type="number"
+                name="rating"
+                min={0}
+                max={5}
+                step={0.1}
+                onChange={formik.handleChange}
+                value={formik.values.rating ?? ""}
+              />
+            </div>
+
+            {/* Product Logo (Brand Logo) */}
+            <div>
+              <Label>Product Logo</Label>
+              <div className="flex items-center gap-4">
+                {logoImagePreview || existingImage ? (
+                  <div className="relative">
+                    <img
+                      src={logoImagePreview || existingImage || ""}
+                      alt="Brand logo preview"
+                      className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeLogoImage}
+                      className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoImageChange}
+                      className="hidden"
+                    />
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </label>
+                )}
               </div>
+            </div>
+
+            {/* Banner Image */}
+            <div>
+              <Label>Banner Image</Label>
+              <div className="flex items-center gap-4">
+                {bannerImagePreview || existingBannerImage ? (
+                  <div className="relative">
+                    <img
+                      src={bannerImagePreview || existingBannerImage || ""}
+                      alt="Banner preview"
+                      className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeBannerImage}
+                      className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerImageChange}
+                      className="hidden"
+                    />
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Comment */}
+            <div className="sm:col-span-2">
+              <Label>Comment</Label>
+              <textarea
+                placeholder="Comment"
+                name="comment"
+                onChange={formik.handleChange}
+                value={formik.values.comment ?? ""}
+                maxLength={500}
+                rows={2}
+                className="h-auto w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {formik.values.comment?.length || 0}/500 characters
+              </p>
+            </div>
 
             {/* Description - Full Width */}
             <div className="sm:col-span-2">

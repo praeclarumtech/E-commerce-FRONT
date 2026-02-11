@@ -15,7 +15,7 @@ export function getProductById(id: string) {
 
 type CreateProductParams = {
     categoryId: string;
-    subCategoryId: string;
+    subCategoryId?: string;
     userId: string;
     name: string;
     description?: string;
@@ -23,17 +23,24 @@ type CreateProductParams = {
     isActive?: boolean;
     status?: string;
     images?: File[];
+    bannerImage?: File | string;
+    brandName?: string;
+    brandLogo?: File | string;
+    rating?: number;
+    comment?: string;
 };
 
 export function createProduct(data: CreateProductParams) {
     const formData = new FormData();
-    
+
     formData.append('categoryId', data.categoryId);
-    formData.append('subCategoryId', data.subCategoryId);
+    if (data.subCategoryId) {
+        formData.append('subCategoryId', data.subCategoryId);
+    }
     formData.append('userId', data.userId);
     formData.append('name', data.name);
     formData.append('price', String(data.price));
-    
+
     if (data.description) {
         formData.append('description', data.description);
     }
@@ -42,6 +49,29 @@ export function createProduct(data: CreateProductParams) {
     }
     if (data.status) {
         formData.append('status', data.status);
+    }
+    if (data.brandName) {
+        formData.append('brandName', data.brandName);
+    }
+    if (data.rating !== undefined && data.rating !== '') {
+        formData.append('rating', String(data.rating));
+    }
+    if (data.comment) {
+        formData.append('comment', data.comment);
+    }
+    if (data.bannerImage) {
+        if (data.bannerImage instanceof File) {
+            formData.append('bannerImage', data.bannerImage);
+        } else {
+            formData.append('bannerImage', data.bannerImage);
+        }
+    }
+    if (data.brandLogo) {
+        if (data.brandLogo instanceof File) {
+            formData.append('brandLogo', data.brandLogo);
+        } else {
+            formData.append('brandLogo', data.brandLogo);
+        }
     }
     if (data.images && data.images.length > 0) {
         data.images.forEach((image) => {
@@ -63,13 +93,18 @@ type UpdateProductParams = {
         isActive?: boolean;
         status?: string;
         images?: File[];
-        removedImages: string[]
+        removedImages: string[];
+        bannerImage?: File | string;
+        brandName?: string;
+        brandLogo?: File | string;
+        rating?: number;
+        comment?: string;
     };
 };
 
 export function updateProduct({ id, data }: UpdateProductParams) {
     const formData = new FormData();
-    
+
     if (data.categoryId) {
         formData.append('categoryId', data.categoryId);
     }
@@ -91,10 +126,36 @@ export function updateProduct({ id, data }: UpdateProductParams) {
     if (data.status) {
         formData.append('status', data.status);
     }
+    if (data.brandName !== undefined) {
+        formData.append('brandName', data.brandName);
+    }
+    if (data.rating !== undefined && data.rating !== '') {
+        formData.append('rating', String(data.rating));
+    }
+    if (data.comment !== undefined) {
+        formData.append('comment', data.comment);
+    }
+    if (data.bannerImage) {
+        if (data.bannerImage instanceof File) {
+            formData.append('bannerImage', data.bannerImage);
+        } else {
+            formData.append('bannerImage', data.bannerImage);
+        }
+    }
+    if (data.brandLogo) {
+        if (data.brandLogo instanceof File) {
+            formData.append('brandLogo', data.brandLogo);
+        } else {
+            formData.append('brandLogo', data.brandLogo);
+        }
+    }
     if (data.images && data.images.length > 0) {
         data.images.forEach((image) => {
             formData.append('images', image);
         });
+    }
+    if (data.removedImages && data.removedImages.length > 0) {
+        formData.append('removedImages', JSON.stringify(data.removedImages));
     }
 
     return api.put<ProductResponseData>(`/products/${id}`, formData);

@@ -13,6 +13,11 @@ export type ProductFormValues = {
     isActive?: boolean;
     status?: ENUM_PRODUCT_STATUS;
     images?: File[];
+    bannerImage?: string;
+    brandName?: string;
+    brandLogo?: string;
+    rating?: number;
+    comment?: string;
 };
 
 export type CreateProductRequestData = ProductFormValues & {
@@ -59,6 +64,11 @@ export type Product = {
     isActive: boolean;
     status: ENUM_PRODUCT_STATUS;
     images?: string[];
+    bannerImage?: string;
+    brandName?: string;
+    brandLogo?: string;
+    rating?: number;
+    comment?: string;
     createdAt: string;
     updatedAt: string;
 };

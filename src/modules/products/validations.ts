@@ -5,7 +5,7 @@ export const productSchema = object().shape({
     categoryId: string()
         .required('Please select a category.'),
     subCategoryId: string()
-        .required('Please select a category.'),
+        .optional(),
     name: string()
         .min(2, 'Product name must be at least 2 characters')
         .max(20, 'Product name cannot exceed 20 characters')
@@ -21,4 +21,9 @@ export const productSchema = object().shape({
     status: string()
         .oneOf(Object.values(ENUM_PRODUCT_STATUS), 'Please select a valid status')
         .optional(),
+    brandName: string().max(100).optional(),
+    brandLogo: string().optional(),
+    bannerImage: string().optional(),
+    rating: number().min(0).max(5).optional(),
+    comment: string().max(500).optional(),
 });
