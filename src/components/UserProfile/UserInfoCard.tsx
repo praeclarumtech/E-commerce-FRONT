@@ -8,6 +8,7 @@ import Input from "../form/input/InputField";
 import { useUser } from "../../context/UserDataContext";
 import { UpdateUserDataFormValues } from "../../modules/auth/type";
 import { updateUserData } from "../../modules/auth/api";
+import profileSchema from "../../modules/profile/validation";
 
 export default function UserInfoCard() {
 
@@ -31,6 +32,7 @@ export default function UserInfoCard() {
       email: user?.email || "",
       phone: user?.phone || ""
     },
+    validationSchema:profileSchema,
     enableReinitialize:true,
     onSubmit: (data) => mutate(data),
   });
@@ -46,7 +48,7 @@ export default function UserInfoCard() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 ">
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500">
-                First Name
+                First Name<span className="text-error-500">*</span>
               </p>
               <Input
                 className="text-sm font-medium text-gray-80"
@@ -54,11 +56,12 @@ export default function UserInfoCard() {
                 value={formik.values.firstName}
                 onChange={formik.handleChange}
               />
+              {formik.errors.firstName && formik.touched.firstName && <p className="text-error-500">{formik.errors.firstName}</p>}
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500">
-                Last Name
+                Last Name<span className="text-error-500">*</span>
               </p>
               <Input
                 className="text-sm font-medium text-gray-800"
@@ -66,6 +69,7 @@ export default function UserInfoCard() {
                 value={formik.values.lastName}
                 onChange={formik.handleChange}
               />
+              {formik.errors.lastName && formik.touched.lastName && <p className="text-error-500">{formik.errors.lastName}</p>}
             </div>
 
             <div>
@@ -76,19 +80,21 @@ export default function UserInfoCard() {
                 className="text-sm font-medium text-gray-800"
                 name="email"
                 value={formik.values.email}
-                readOnly
+                // readOnly
+                disabled={true}
               />
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500">
-                Phone
+                Phone<span className="text-error-500">*</span>
               </p>
               <Input
                 className="text-sm font-medium text-gray-800"
                 name="phone"
                 value={formik.values.phone}
                 onChange={formik.handleChange} />
+                {formik.errors.phone && formik.touched.phone && <p className="text-error-500">{formik.errors.phone}</p>}
             </div>
             <Button size="sm" className="w-25" onClick={() => formik.handleSubmit()}>
               {isPending ? "Updating..." : "Update"}

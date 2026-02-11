@@ -13,8 +13,9 @@ const baseUserSchema = {
         .email('Invalid email')
         .required('Please enter email.'),
     phone: string()
-        .min(10, 'Phone number must be at least 10 digits')
-        .max(15, 'Phone number is too long')
+        .matches(
+      /^(\+\d{1,3}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/,
+      'Please enter valid phone number.')
         .required('Phone number is required.'),
     gender: string()
         .oneOf(['male', 'female', 'other'], 'Please select a valid gender')

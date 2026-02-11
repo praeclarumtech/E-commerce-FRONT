@@ -21,8 +21,9 @@ const signupSchema = object().shape({
         .min(6)
         .required('Password is required.'),
     phone: string()
-        .min(10)
-        .max(15)
+        .matches(
+      /^(\+\d{1,3}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/,
+      'Please enter valid phone number.')
         .required('Phone number is required.'),
 });
 
