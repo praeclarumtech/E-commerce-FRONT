@@ -14,6 +14,10 @@ interface SelectProps {
   name?: string;
   isDisabled?: boolean;
   isSearchable?: boolean;
+  /** Id for the focusable input (for label association and a11y) */
+  inputId?: string;
+  /** Id(s) of element(s) that describe this control (e.g. error message) */
+  "aria-describedby"?: string;
 }
 
 const customStyles: StylesConfig<Option, false> = {
@@ -67,6 +71,7 @@ const customStyles: StylesConfig<Option, false> = {
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
     border: '1px solid #e5e7eb',
     overflow: 'hidden',
+    zIndex: 50,
   }),
   menuList: (provided) => ({
     ...provided,
@@ -93,6 +98,8 @@ const Select: React.FC<SelectProps> = ({
   name,
   isDisabled = false,
   isSearchable = true,
+  inputId,
+  "aria-describedby": ariaDescribedby,
 }) => {
   const selectedOption = options.find((option) => option.value === value) || null;
 
@@ -112,6 +119,8 @@ const Select: React.FC<SelectProps> = ({
       isDisabled={isDisabled}
       isSearchable={isSearchable}
       isClearable={false}
+      inputId={inputId}
+      aria-describedby={ariaDescribedby}
     />
   );
 };

@@ -165,6 +165,18 @@ export function deleteProduct(id: string) {
     return api.delete(`/products/${id}`);
 }
 
+export function patchProduct(id: string, data: Record<string, unknown>) {
+    return api.patch(`/products/${id}`, data);
+}
+
+export function publishProduct(id: string) {
+    return api.patch(`/products/${id}/publish`);
+}
+
+export function unpublishProduct(id: string) {
+    return api.patch(`/products/${id}/unpublish`);
+}
+
 // Product Image Management
 export function addProductImages(productId: string, images: File[]) {
     const formData = new FormData();

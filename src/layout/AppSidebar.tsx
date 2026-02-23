@@ -3,19 +3,28 @@ import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
 
 import {
-  LayoutDashboard, Users, ChevronDown, Lock,
+  LayoutDashboard,
+  Users,
+  ChevronDown,
+  Lock,
   Package,
   FolderTree,
   Shield,
   Layers,
   Globe,
   MapPinned,
-  Building2
+  Building2,
+  Tag,
+  Percent,
+  ShoppingCart,
+  Wrench,
+  Warehouse,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useUser } from "../context/UserDataContext";
 import { removeCookie } from "../shared/utils/auth";
 import { ECOMMERCE_ACCESS_TOKEN } from "../shared/constant";
+import Logo from "../shared/component/Logo";
 
 type NavItem = {
   name: string;
@@ -50,6 +59,31 @@ const allNavItems: NavItem[] = [
     icon: <Package />,
     name: "Products",
     path: "/products",
+  },
+  {
+    icon: <Tag />,
+    name: "Brands",
+    path: "/brands",
+  },
+  {
+    icon: <Percent />,
+    name: "Offers",
+    path: "/offers",
+  },
+  {
+    icon: <ShoppingCart />,
+    name: "Orders",
+    path: "/orders",
+  },
+  {
+    icon: <Warehouse />,
+    name: "Inventory",
+    path: "/inventory",
+  },
+  {
+    icon: <Wrench />,
+    name: "Services",
+    path: "/services",
   },
   {
     name: "Master-module",
@@ -318,10 +352,12 @@ function AppSidebar() {
             }
           )}
         >
-          {( isMobileOpen) ? (
-            <></>
-          ) : (
-            <>Logo</>
+          {!isMobileOpen && (
+            <Logo
+              variant={isExpanded || isHovered ? "sidebar" : "icon"}
+              className="w-full"
+              imgClassName={!isExpanded && !isHovered ? "h-9 w-9" : ""}
+            />
           )}
         </div>
         <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar flex-1">

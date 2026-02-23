@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
-import { Link } from "react-router";
+import Logo from "../shared/component/Logo";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -57,9 +57,7 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link to="/" className="lg:hidden">
-            <>Logo</>
-          </Link>
+          <Logo variant="compact" className="lg:hidden" />
 
           <button
             onClick={toggleApplicationMenu}

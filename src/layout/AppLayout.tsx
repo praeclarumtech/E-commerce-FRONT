@@ -32,6 +32,14 @@ const CategoryForm = lazy(
 );
 const Roles = lazy(() => import("../modules/roles/components/Roles"));
 const RoleForm = lazy(() => import("../modules/roles/components/RoleForm"));
+const Brands = lazy(() => import("../modules/brands/components/Brands"));
+const BrandForm = lazy(() => import("../modules/brands/components/BrandForm"));
+const Offers = lazy(() => import("../modules/offers/components/Offers"));
+const OfferForm = lazy(() => import("../modules/offers/components/OfferForm"));
+const Orders = lazy(() => import("../modules/orders/components/Orders"));
+const Inventory = lazy(() => import("../modules/inventory/components/Inventory"));
+const Services = lazy(() => import("../modules/services/components/Services"));
+const ServiceForm = lazy(() => import("../modules/services/components/ServiceForm"));
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -69,6 +77,17 @@ const LayoutContent: React.FC = () => {
             <Route path="/roles" element={<Roles />} />
             <Route path="/roles/add" element={<RoleForm />} />
             <Route path="/roles/edit/:id" element={<RoleForm />} />
+            <Route path="/brands" element={<Brands />} />
+            <Route path="/brands/add" element={<BrandForm />} />
+            <Route path="/brands/edit/:id" element={<BrandForm />} />
+            <Route path="/offers" element={<Offers />} />
+            <Route path="/offers/add" element={<OfferForm />} />
+            <Route path="/offers/edit/:id" element={<OfferForm />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/add" element={<ServiceForm />} />
+            <Route path="/services/edit/:id" element={<ServiceForm />} />
             <Route path="/country" element={<Country />} />
             <Route path="/country/add" element={<CountryForm />} />
             <Route path="/country/edit/:id" element={<CountryForm />} />

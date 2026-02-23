@@ -266,7 +266,7 @@ function UserForm() {
                                     />
                                     <span
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                                        className="absolute z-10 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                                     >
                                         {showPassword ? <Eye /> : <EyeOff />}
                                     </span>

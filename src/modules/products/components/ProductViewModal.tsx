@@ -50,17 +50,20 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl" showCloseButton={false}>
-            <div className="relative max-h-[90vh] overflow-y-auto">
-                {/* Close Button */}
+            <div className="relative flex flex-col max-h-[90vh]">
+                {/* Close Button - outside scroll area so it stays fixed */}
                 <button
                     onClick={onClose}
-                    className="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
+                    className="absolute right-4 top-4 z-20 p-2 rounded-full hover:bg-gray-100 transition-colors bg-white/90 shadow-sm border border-gray-200"
+                    aria-label="Close"
                 >
                     <X className="h-5 w-5 text-gray-500" />
                 </button>
 
+                {/* Scrollable content */}
+                <div className="overflow-y-auto flex-1 min-h-0">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-5">
+                <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
                     <h2 className="text-xl font-semibold text-gray-900 pr-8">
                         {product.name}
                     </h2>
@@ -118,12 +121,12 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
                                     <p className="text-gray-900 font-medium">
                                         {(product.categoryId as ProductCategory)?.name || '-'}
                                     </p>
-                                    {(product.categoryId as ProductCategory)?.isSubCategory && 
-                                     (product.categoryId as ProductCategory)?.parentCategory && (
+                                    {(product.categoryId as ProductCategory)?.subCategoryId && 
+                                     (product.categoryId as ProductCategory)?.categoryId && (
                                         <p className="text-xs text-gray-500 mt-0.5">
                                             ↳ Subcategory of{' '}
                                             <span className="font-medium text-gray-600">
-                                                {(product.categoryId as ProductCategory).parentCategory?.name}
+                                                {(product.categoryId as ProductCategory).categoryId?.name}
                                             </span>
                                         </p>
                                     )}
@@ -240,6 +243,7 @@ function ProductViewModal({ isOpen, onClose, product }: ProductViewModalProps) {
                     >
                         Close
                     </button>
+                </div>
                 </div>
             </div>
         </Modal>

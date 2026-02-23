@@ -16,6 +16,7 @@ import { productSchema } from "../validations";
 import { ProductFormValues, ENUM_PRODUCT_STATUS } from "../type";
 import { Category } from "../../categories/type";
 import { useUser } from "../../../context/UserDataContext";
+import VariantSection from "./VariantSection";
 import { Upload, X } from "lucide-react";
 
 const statusOptions = [
@@ -60,8 +61,7 @@ function ProductForm() {
   const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
   const [existingBannerImage, setExistingBannerImage] = useState<string | null>(null);
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
-
-
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const handleImagesChange = useCallback((files: File[]) => {
     setImageFiles(files);
@@ -164,10 +164,16 @@ function ProductForm() {
 
   const { isPending: isCreating, mutate: createMutate } = useMutation({
     mutationFn: createProduct,
-    onSuccess: () => {
-      toast.success("Product created successfully!");
+    onSuccess: (response) => {
+      const productId = response?.data?.data?.productId;
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      navigate("/products");
+      if (productId) {
+        toast.success("Product created. Add variants below if needed.");
+        navigate(`/products/edit/${productId}`, { replace: true });
+      } else {
+        toast.success("Product created successfully!");
+        navigate("/products");
+      }
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message || "Failed to create product");
@@ -204,6 +210,7 @@ function ProductForm() {
     },
     validationSchema: productSchema,
     validateOnChange: false,
+    validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: (data) => {
       if (isEditMode) {
@@ -308,6 +315,9 @@ function ProductForm() {
 
   const isPending = isCreating || isUpdating;
 
+  const showError = (field: keyof ProductFormValues) =>
+    !!(formik.errors[field] && (formik.touched[field] || submitAttempted));
+
   // Selected value for the single category+subcategory dropdown
   const selectedCategoryValue =
     formik.values.subCategoryId && formik.values.categoryId
@@ -344,28 +354,39 @@ function ProductForm() {
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {isEditMode
-              ? "Update the product details below."
+              ? "Update the product details below. You can add or manage variants (e.g. size, color) in the Product Variants section below."
               : "Fill in the details to create a new product."}
           </p>
         </div>
 
-        <form onSubmit={formik.handleSubmit}>
+        <form
+          onSubmit={(e) => {
+            setSubmitAttempted(true);
+            formik.handleSubmit(e);
+          }}
+        >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {/* Product Name */}
             <div>
-              <Label>
+              <Label htmlFor="product-name">
                 Product Name<span className="text-error-500">*</span>
               </Label>
               <Input
+                id="product-name"
                 placeholder="Enter product name"
                 type="text"
                 name="name"
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.name}
                 maxLength={20}
+                error={showError("name")}
+                aria-describedby={
+                  showError("name") ? "product-name-error" : undefined
+                }
               />
-              {formik.errors.name && formik.touched.name && (
-                <p className="text-error-500 text-sm mt-1">
+              {showError("name") && (
+                <p id="product-name-error" className="text-error-500 text-sm mt-1" role="alert">
                   {formik.errors.name}
                 </p>
               )}
@@ -373,18 +394,22 @@ function ProductForm() {
 
             {/* Category / SubCategory (single dropdown: categories and subcategories) */}
             <div>
-              <Label>
+              <Label htmlFor="product-category">
                 Category<span className="text-error-500">*</span>
               </Label>
               <Select
                 name="categoryId"
+                inputId="product-category"
                 options={categoryOptions}
                 placeholder="Select category or subcategory"
                 value={selectedCategoryValue}
                 onChange={handleCategoryOptionChange}
+                aria-describedby={
+                  showError("categoryId") ? "product-category-error" : undefined
+                }
               />
-              {formik.errors.categoryId && formik.touched.categoryId && (
-                <p className="text-error-500 text-sm mt-1">
+              {showError("categoryId") && (
+                <p id="product-category-error" className="text-error-500 text-sm mt-1" role="alert">
                   {formik.errors.categoryId}
                 </p>
               )}
@@ -392,20 +417,26 @@ function ProductForm() {
 
             {/* Price */}
             <div>
-              <Label>
+              <Label htmlFor="product-price">
                 Price<span className="text-error-500">*</span>
               </Label>
               <Input
+                id="product-price"
                 placeholder="Enter price"
                 type="number"
                 name="price"
                 min={0}
                 step={0.01}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.price}
+                error={showError("price")}
+                aria-describedby={
+                  showError("price") ? "product-price-error" : undefined
+                }
               />
-              {formik.errors.price && formik.touched.price && (
-                <p className="text-error-500 text-sm mt-1">
+              {showError("price") && (
+                <p id="product-price-error" className="text-error-500 text-sm mt-1" role="alert">
                   {formik.errors.price}
                 </p>
               )}
@@ -413,16 +444,20 @@ function ProductForm() {
 
             {/* Status */}
             <div>
-              <Label>Status</Label>
+              <Label htmlFor="product-status">Status</Label>
               <Select
                 name="status"
+                inputId="product-status"
                 options={statusOptions}
                 placeholder="Select status"
                 value={formik.values.status}
                 onChange={(value) => formik.setFieldValue("status", value)}
+                aria-describedby={
+                  showError("status") ? "product-status-error" : undefined
+                }
               />
-              {formik.errors.status && formik.touched.status && (
-                <p className="text-error-500 text-sm mt-1">
+              {showError("status") && (
+                <p id="product-status-error" className="text-error-500 text-sm mt-1" role="alert">
                   {formik.errors.status}
                 </p>
               )}
@@ -430,9 +465,10 @@ function ProductForm() {
 
             {/* Active Status */}
             <div>
-              <Label>Active Status</Label>
+              <Label htmlFor="product-isActive">Active Status</Label>
               <Select
                 name="isActive"
+                inputId="product-isActive"
                 options={activeOptions}
                 placeholder="Select active status"
                 value={formik.values.isActive ? "true" : "false"}
@@ -444,20 +480,23 @@ function ProductForm() {
 
             {/* Brand Name */}
             <div>
-              <Label>Brand Name</Label>
+              <Label htmlFor="product-brandName">Brand Name</Label>
               <Input
+                id="product-brandName"
                 placeholder="Enter brand name"
                 type="text"
                 name="brandName"
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.brandName ?? ""}
               />
             </div>
 
             {/* Rating */}
             <div>
-              <Label>Rating</Label>
+              <Label htmlFor="product-rating">Rating</Label>
               <Input
+                id="product-rating"
                 placeholder="0-5"
                 type="number"
                 name="rating"
@@ -465,13 +504,25 @@ function ProductForm() {
                 max={5}
                 step={0.1}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.rating ?? ""}
+                error={showError("rating")}
+                aria-describedby={
+                  showError("rating") ? "product-rating-error" : undefined
+                }
               />
+              {showError("rating") && (
+                <p id="product-rating-error" className="text-error-500 text-sm mt-1" role="alert">
+                  {formik.errors.rating}
+                </p>
+              )}
             </div>
 
             {/* Product Logo (Brand Logo) */}
             <div>
-              <Label>Product Logo</Label>
+              <Label htmlFor={logoImagePreview || existingImage ? undefined : "product-logo"}>
+                Product Logo
+              </Label>
               <div className="flex items-center gap-4">
                 {logoImagePreview || existingImage ? (
                   <div className="relative">
@@ -484,17 +535,23 @@ function ProductForm() {
                       type="button"
                       onClick={removeLogoImage}
                       className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                      aria-label="Remove product logo"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
+                  <label
+                    htmlFor="product-logo"
+                    className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors"
+                  >
                     <input
+                      id="product-logo"
                       type="file"
                       accept="image/*"
                       onChange={handleLogoImageChange}
                       className="hidden"
+                      aria-label="Upload product logo"
                     />
                     <Upload className="h-6 w-6 text-gray-400" />
                   </label>
@@ -504,7 +561,9 @@ function ProductForm() {
 
             {/* Banner Image */}
             <div>
-              <Label>Banner Image</Label>
+              <Label htmlFor={bannerImagePreview || existingBannerImage ? undefined : "product-banner"}>
+                Banner Image
+              </Label>
               <div className="flex items-center gap-4">
                 {bannerImagePreview || existingBannerImage ? (
                   <div className="relative">
@@ -517,17 +576,23 @@ function ProductForm() {
                       type="button"
                       onClick={removeBannerImage}
                       className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                      aria-label="Remove banner image"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors">
+                  <label
+                    htmlFor="product-banner"
+                    className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-brand-400 transition-colors"
+                  >
                     <input
+                      id="product-banner"
                       type="file"
                       accept="image/*"
                       onChange={handleBannerImageChange}
                       className="hidden"
+                      aria-label="Upload banner image"
                     />
                     <Upload className="h-6 w-6 text-gray-400" />
                   </label>
@@ -537,11 +602,13 @@ function ProductForm() {
 
             {/* Comment */}
             <div className="sm:col-span-2">
-              <Label>Comment</Label>
+              <Label htmlFor="product-comment">Comment</Label>
               <textarea
+                id="product-comment"
                 placeholder="Comment"
                 name="comment"
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.comment ?? ""}
                 maxLength={500}
                 rows={2}
@@ -554,18 +621,29 @@ function ProductForm() {
 
             {/* Description - Full Width */}
             <div className="sm:col-span-2">
-              <Label>Description</Label>
+              <Label htmlFor="product-description">Description</Label>
               <textarea
+                id="product-description"
                 placeholder="Enter product description"
                 name="description"
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 value={formik.values.description}
                 maxLength={255}
                 rows={4}
-                className="h-auto w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 resize-none"
+                aria-describedby={
+                  showError("description")
+                    ? "product-description-error"
+                    : undefined
+                }
+                className={`h-auto w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 focus:border-brand-300 focus:ring-brand-500/20 resize-none ${
+                  showError("description")
+                    ? "border-error-500 focus:border-error-300 focus:ring-error-500/20"
+                    : "border-gray-300"
+                }`}
               />
-              {formik.errors.description && formik.touched.description && (
-                <p className="text-error-500 text-sm mt-1">
+              {showError("description") && (
+                <p id="product-description-error" className="text-error-500 text-sm mt-1" role="alert">
                   {formik.errors.description}
                 </p>
               )}
@@ -614,6 +692,10 @@ function ProductForm() {
           </div>
         </form>
       </div>
+
+      {isEditMode && id && (
+        <VariantSection productId={id} />
+      )}
     </div>
   );
 }

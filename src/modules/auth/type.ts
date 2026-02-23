@@ -53,9 +53,7 @@ export type VerifyMailRequertData = VerifyMailFormValues & {
     type: 'email_verify'
 };
 
-export type VerifyOTPRequertData = Omit<VerifyOTPFormValues, 'otp'> & {
-    otp: number
-}
+export type VerifyOTPRequertData = VerifyOTPFormValues;
 
 export type UpdateUserRequestData = UpdateUserDataFormValues;
 

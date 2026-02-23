@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
-import { Plus, Pencil, Trash2, Package, ImageIcon, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, ImageIcon, Star, AlertCircle } from "lucide-react";
 
 import { getVariantsByProduct, deleteVariant } from "../variantApi";
 import { Variant } from "../type";
@@ -88,14 +88,38 @@ function VariantSection({ productId }: Props) {
     return primaryImage?.imageUrl || variant.images[0]?.imageUrl;
   };
 
+  const hasNoVariants = !isLoading && variants.length === 0;
+
   return (
     <div className="mt-8 border-t border-gray-200 pt-6">
+      {/* Pending notice when product has no variants */}
+      {hasNoVariants && (
+        <div
+          className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800"
+          role="status"
+          aria-live="polite"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <p className="font-medium">Variants pending</p>
+            <p className="text-sm text-amber-700 mt-0.5">
+              This product has no variants. Add options (e.g. size, color) so customers can choose. Variants are optional — skip if this product has no options.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-brand-600" />
           <h3 className="text-lg font-semibold text-gray-900">Product Variants</h3>
           <span className="text-sm text-gray-500">({variants.length})</span>
+          {hasNoVariants && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+              Pending
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -113,12 +137,20 @@ function VariantSection({ productId }: Props) {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
         </div>
       ) : variants.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+        <div className="text-center py-12 px-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
           <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">No variants yet</p>
-          <p className="text-gray-400 text-xs mt-1">
-            Add variants to offer different options like sizes or colors
+          <p className="text-gray-600 font-medium">No variants yet</p>
+          <p className="text-gray-500 text-sm mt-1 max-w-sm mx-auto">
+            Add variants to offer different options (e.g. Size: S/M/L, Color: Red/Blue).
           </p>
+          <button
+            type="button"
+            onClick={handleAddClick}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Add your first variant
+          </button>
         </div>
       ) : (
         <div className="space-y-3">

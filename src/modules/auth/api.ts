@@ -20,8 +20,16 @@ import {
 } from "./type";
 
 const signin = (data: SignInRequestData): Promise<AxiosResponse<SignInResponseData>> => {
-  return api.post<SignInResponseData>('/auth/login', data)
-}
+  return api.post<SignInResponseData>('/auth/login', data);
+};
+
+const refreshToken = (): Promise<AxiosResponse<SignInResponseData>> => {
+  return api.post<SignInResponseData>('/auth/refresh');
+};
+
+const getMe = () => {
+  return api.get('/auth/me');
+};
 
 const signup = (data: SignUpRequestData): Promise<AxiosResponse<SignUpResponseData>> => {
   return api.post('/users/register', data)
@@ -42,6 +50,14 @@ const verifyOTP = (data: VerifyOTPRequertData): Promise<AxiosResponse<VerifyOTPR
   return api.post('/users/verify-otp', data)
 }
 
+const verifyRegistrationOTP = (data: VerifyOTPRequertData): Promise<AxiosResponse<VerifyOTPResponseData>> => {
+  return api.post('/users/verify-registration-otp', data)
+}
+
+const resendRegistrationOTP = (data: { email: string }): Promise<AxiosResponse<{ message: string }>> => {
+  return api.post("/users/verify-otp", data);
+}
+
 const updateUserData = (data: UpdateUserRequestData):Promise<AxiosResponse<UpdateUserResponseData>> => {
   return api.put('/users/profile', data)
 }
@@ -49,9 +65,13 @@ const updateUserData = (data: UpdateUserRequestData):Promise<AxiosResponse<Updat
 export {
   signin,
   signup,
+  refreshToken,
+  getMe,
   resetPassword,
   forgotPassword,
   verifymail,
   verifyOTP,
+  verifyRegistrationOTP,
+  resendRegistrationOTP,
   updateUserData,
 }

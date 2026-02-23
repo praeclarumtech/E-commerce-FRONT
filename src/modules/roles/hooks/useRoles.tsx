@@ -9,6 +9,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useCallback, useState } from 'react';
 import moment from 'moment';
 import { Role } from '../type';
+import { useModal } from '../../../hooks/useModal';
 
 type FetchParams = {
     page?: number;
@@ -20,8 +21,10 @@ function useRoles() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [params, setParams] = useState<FetchParams>({ page: 1, limit: 10, search: '' });
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+    const [roleToView, setRoleToView] = useState<Role | null>(null);
+    const { isOpen: deleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
+    const { isOpen: isViewModalOpen, openModal: openViewModal, closeModal: closeViewModal } = useModal();
 
     const { data, isLoading, isFetching, isRefetching, error } = useQuery({
         queryKey: ['roles', params],
@@ -34,7 +37,7 @@ function useRoles() {
         onSuccess: () => {
             toast.success("Role deleted successfully!");
             queryClient.invalidateQueries({ queryKey: ['roles'] });
-            setDeleteModalOpen(false);
+            closeDeleteModal();
             setRoleToDelete(null);
         },
         onError: (error: AxiosError<{ message: string }>) => {
@@ -53,10 +56,20 @@ function useRoles() {
         navigate(`/roles/edit/${role._id}`);
     }, [navigate]);
 
+    const handleViewClick = useCallback((role: Role) => {
+        setRoleToView(role);
+        openViewModal();
+    }, [openViewModal]);
+
+    const handleCloseView = useCallback(() => {
+        closeViewModal();
+        setRoleToView(null);
+    }, [closeViewModal]);
+
     const handleDeleteClick = useCallback((role: Role) => {
         setRoleToDelete(role);
-        setDeleteModalOpen(true);
-    }, []);
+        openDeleteModal();
+    }, [openDeleteModal]);
 
     const handleDeleteConfirm = useCallback(() => {
         if (roleToDelete) {
@@ -65,9 +78,9 @@ function useRoles() {
     }, [roleToDelete, deleteMutate]);
 
     const handleDeleteClose = useCallback(() => {
-        setDeleteModalOpen(false);
+        closeDeleteModal();
         setRoleToDelete(null);
-    }, []);
+    }, [closeDeleteModal]);
 
     const columns: ColumnDef<Role>[] = useMemo(() => {
         const _columns: ColumnDef<Role>[] = [
@@ -79,9 +92,12 @@ function useRoles() {
                 header: 'Name',
                 accessorKey: 'name',
                 cell: (info) => (
-                    <span className="font-medium text-gray-900 capitalize">
+                    <button
+                        onClick={() => handleViewClick(info.row.original)}
+                        className="font-medium text-brand-600 hover:text-brand-700 hover:underline text-left capitalize"
+                    >
                         {info.row.original.name}
-                    </span>
+                    </button>
                 ),
             },
             {
@@ -132,8 +148,7 @@ function useRoles() {
         ];
 
         return _columns;
-    }, [handleEdit, handleDeleteClick]);
-
+    }, [handleEdit, handleDeleteClick, handleViewClick]);
 
     return {
         data: data?.items || [],
@@ -147,12 +162,14 @@ function useRoles() {
             totalItems: data?.total || 0,
             limit: params.limit || 10,
         },
-        // Delete modal state
         deleteModalOpen,
         roleToDelete,
         isDeleting,
         handleDeleteConfirm,
         handleDeleteClose,
+        isViewModalOpen,
+        roleToView,
+        handleCloseView,
     };
 }
 

@@ -8,7 +8,7 @@ import { getCookie } from "../utils/auth";
 const withAuth = (Component: ComponentType): FC => {
     return function (props) {
         if (!getCookie(ECOMMERCE_ACCESS_TOKEN)) {
-            return <Navigate to={"/signin"} />;
+            return <Navigate to={"/e-comm/signin"} />;
         }
         return <Component {...props} />;
     };

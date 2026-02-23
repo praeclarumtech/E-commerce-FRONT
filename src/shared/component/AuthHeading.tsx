@@ -1,15 +1,20 @@
 import React from "react";
 
 export default function AuthHeading({
-    children,
+  children,
+  subtitle,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
+  subtitle?: string;
 }) {
-    return (
-        <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm">
-                {children}
-            </h1>
-        </div>
-    );
+  return (
+    <div className="mb-6 sm:mb-8 text-center">
+      <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+        {children}
+      </h1>
+      {subtitle && (
+        <p className="mt-1.5 text-sm text-gray-500">{subtitle}</p>
+      )}
+    </div>
+  );
 }

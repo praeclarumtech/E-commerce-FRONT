@@ -9,6 +9,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useCallback, useState } from 'react';
 import moment from 'moment';
 import { User } from '../type';
+import { useModal } from '../../../hooks/useModal';
 
 type FetchParams = {
     page?: number;
@@ -20,8 +21,10 @@ function useUsers() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [params, setParams] = useState<FetchParams>({ page: 1, limit: 10, search: '' });
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [userToView, setUserToView] = useState<User | null>(null);
+    const { isOpen: deleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
+    const { isOpen: isViewModalOpen, openModal: openViewModal, closeModal: closeViewModal } = useModal();
 
     const { data, isLoading, isFetching, isRefetching, error } = useQuery({
         queryKey: ['users', params],
@@ -34,7 +37,7 @@ function useUsers() {
         onSuccess: () => {
             toast.success("User deleted successfully!");
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            setDeleteModalOpen(false);
+            closeDeleteModal();
             setUserToDelete(null);
         },
         onError: (error: AxiosError<{ message: string }>) => {
@@ -53,10 +56,20 @@ function useUsers() {
         navigate(`/users/edit/${user._id}`);
     }, [navigate]);
 
+    const handleViewClick = useCallback((user: User) => {
+        setUserToView(user);
+        openViewModal();
+    }, [openViewModal]);
+
+    const handleCloseView = useCallback(() => {
+        closeViewModal();
+        setUserToView(null);
+    }, [closeViewModal]);
+
     const handleDeleteClick = useCallback((user: User) => {
         setUserToDelete(user);
-        setDeleteModalOpen(true);
-    }, []);
+        openDeleteModal();
+    }, [openDeleteModal]);
 
     const handleDeleteConfirm = useCallback(() => {
         if (userToDelete) {
@@ -65,9 +78,9 @@ function useUsers() {
     }, [userToDelete, deleteMutate]);
 
     const handleDeleteClose = useCallback(() => {
-        setDeleteModalOpen(false);
+        closeDeleteModal();
         setUserToDelete(null);
-    }, []);
+    }, [closeDeleteModal]);
 
     const columns: ColumnDef<User>[] = useMemo(() => {
         const _columns: ColumnDef<User>[] = [
@@ -78,7 +91,14 @@ function useUsers() {
             {
                 header: 'Name',
                 accessorKey: 'firstName',
-                cell: (info) => `${info.row.original.firstName} ${info.row.original.lastName}`,
+                cell: (info) => (
+                    <button
+                        onClick={() => handleViewClick(info.row.original)}
+                        className="font-medium text-brand-600 hover:text-brand-700 hover:underline text-left"
+                    >
+                        {info.row.original.firstName} {info.row.original.lastName}
+                    </button>
+                ),
             },
             {
                 header: 'Email',
@@ -145,8 +165,7 @@ function useUsers() {
         ];
 
         return _columns;
-    }, [handleEdit, handleDeleteClick]);
-
+    }, [handleEdit, handleDeleteClick, handleViewClick]);
 
     return {
         data: data?.items || [],
@@ -160,12 +179,14 @@ function useUsers() {
             totalItems: data?.total || 0,
             limit: params.limit || 10,
         },
-        // Delete modal state
         deleteModalOpen,
         userToDelete,
         isDeleting,
         handleDeleteConfirm,
         handleDeleteClose,
+        isViewModalOpen,
+        userToView,
+        handleCloseView,
     };
 }
 

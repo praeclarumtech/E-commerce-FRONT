@@ -20,7 +20,7 @@ api.interceptors.response.use(function (response) {
 }, function onRejected(error) {
     if (error?.response?.data?.statusCode === 401) {
         removeCookie(ECOMMERCE_ACCESS_TOKEN);
-        window.location.replace('/signin')
+        window.location.replace('/e-comm/signin')
     }
     return Promise.reject(error);
 });

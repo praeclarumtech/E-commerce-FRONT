@@ -126,7 +126,9 @@ function RoleForm() {
                                 placeholder="Enter role name"
                                 type="text"
                                 name="name"
-                                onChange={formik.handleChange}
+                                onChange={(e) =>
+                                    formik.setFieldValue("name", e.target.value.replace(/\d/g, ""))
+                                }
                                 value={formik.values.name}
                             />
                             {formik.errors.name && formik.touched.name && (
