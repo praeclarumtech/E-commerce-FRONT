@@ -5,4 +5,6 @@ export const offerSchema = object().shape({
         .min(2, "Offer name must be at least 2 characters")
         .max(200, "Offer name is too long")
         .required("Please enter offer name."),
+    type: string().required("Please enter offer name."),
+    targetType: string().required("Please enter offer name."),
 });

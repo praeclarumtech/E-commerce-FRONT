@@ -9,10 +9,27 @@ import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import { createOffer, getOfferById, updateOffer } from "../api";
 import { offerSchema } from "../validations";
-import { Offer } from "../type";
+import { ENUM_OFFER_TARGET, ENUM_OFFER_TYPE, Offer } from "../type";
+import Select from "../../../components/form/Select";
+
+const offerTypeOption = [
+    { value: ENUM_OFFER_TYPE.PERCENTAGE, label: "percentage" },
+    { value: ENUM_OFFER_TYPE.FLAT, label: "flat" },
+    { value: ENUM_OFFER_TYPE.FREE_SHIPPING, label: "free_shipping" },
+    { value: ENUM_OFFER_TYPE.BUY_X_GET_Y, label: "buy_x_get_y" },
+];
+
+const offerTargetType = [
+    { value: ENUM_OFFER_TARGET.PRODUCT, label : 'product', },
+    { value: ENUM_OFFER_TARGET.CATEGORY, label: "category" },
+    { value: ENUM_OFFER_TARGET.VARIANT, label: "variant" },
+    { value: ENUM_OFFER_TARGET.CART, label: "cart" },
+];
 
 type OfferFormValues = {
     name: string;
+    type: ENUM_OFFER_TYPE;
+    targetType: ENUM_OFFER_TARGET;
 };
 
 function OfferForm() {
@@ -56,15 +73,20 @@ function OfferForm() {
     const formik = useFormik<OfferFormValues>({
         initialValues: {
             name: "",
+            type: ENUM_OFFER_TYPE.PERCENTAGE,
+            targetType: ENUM_OFFER_TARGET.PRODUCT,
         },
         validationSchema: offerSchema,
         validateOnChange: false,
         enableReinitialize: true,
         onSubmit: (data) => {
             if (isEditMode) {
-                updateMutate({ id: id!, data: { name: data.name } });
+                updateMutate({ id: id!, data: { 
+                    name: data.name,
+                    type: data.type,
+                 } });
             } else {
-                createMutate({ name: data.name });
+                createMutate({ name: data.name, type: data.type, });
             }
         },
     });
@@ -74,6 +96,8 @@ function OfferForm() {
             const o = offerData as Offer;
             formik.setValues({
                 name: (o.name as string) || "",
+                type: offerData.type || ENUM_OFFER_TYPE.PERCENTAGE,
+                targetType: offerData.targetType || ENUM_OFFER_TARGET.PRODUCT,
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,6 +129,8 @@ function OfferForm() {
 
                 <form onSubmit={formik.handleSubmit}>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                        {/* offer name */}
                         <div>
                             <Label>
                                 Offer Name <span className="text-error-500">*</span>
@@ -119,6 +145,36 @@ function OfferForm() {
                             />
                             {formik.errors.name && formik.touched.name && (
                                 <p className="text-error-500 text-sm mt-1">{formik.errors.name}</p>
+                            )}
+                        </div>
+
+                        {/* offer type */}
+                        <div>
+                            <Label htmlFor="offer-type">Type</Label>
+                            <Select
+                                name="offerType"
+                                options={offerTypeOption}
+                                placeholder="Select offer type"
+                                value={formik.values.type}
+                                onChange={(value) => formik.setFieldValue("offerType", value)}
+                            />
+                            {formik.errors.type && formik.touched.type && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.type}</p>
+                            )}
+                        </div>
+
+                        {/* offer target */}
+                        <div>
+                            <Label htmlFor="offer-target">Target</Label>
+                            <Select
+                                name="offerTarget"
+                                options={offerTargetType}
+                                placeholder="Select offer target"
+                                value={formik.values.targetType}
+                                onChange={(value) => formik.setFieldValue("offerTarget", value)}
+                            />
+                            {formik.errors.targetType && formik.touched.targetType && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.targetType}</p>
                             )}
                         </div>
 
@@ -140,8 +196,8 @@ function OfferForm() {
                                         ? "Updating..."
                                         : "Creating..."
                                     : isEditMode
-                                      ? "Update Offer"
-                                      : "Create Offer"}
+                                        ? "Update Offer"
+                                        : "Create Offer"}
                             </button>
                         </div>
                     </div>

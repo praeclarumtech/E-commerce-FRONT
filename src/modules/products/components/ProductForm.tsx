@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 import { useNavigate, useParams } from "react-router-dom";
+import { Upload, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import { AxiosError } from "axios";
@@ -17,7 +18,6 @@ import { ProductFormValues, ENUM_PRODUCT_STATUS } from "../type";
 import { Category } from "../../categories/type";
 import { useUser } from "../../../context/UserDataContext";
 import VariantSection from "./VariantSection";
-import { Upload, X } from "lucide-react";
 
 const statusOptions = [
   { value: ENUM_PRODUCT_STATUS.DRAFT, label: "Draft" },
@@ -140,6 +140,7 @@ function ProductForm() {
         options.push({
           value: `c_${cat._id}`,
           label: cat.name,
+          isDisabled: true,
         });
         valueMap[`c_${cat._id}`] = { categoryId: cat._id, subCategoryId: "" };
 
@@ -320,22 +321,22 @@ function ProductForm() {
 
   // Selected value for the single category+subcategory dropdown
   const selectedCategoryValue =
-    formik.values.subCategoryId && formik.values.categoryId
-      ? `s_${formik.values.categoryId}|${formik.values.subCategoryId}`
-      : formik.values.categoryId
-        ? `c_${formik.values.categoryId}`
-        : "";
+  formik.values.subCategoryId && formik.values.categoryId
+    ? `s_${formik.values.categoryId}|${formik.values.subCategoryId}`
+    : "";
 
   const handleCategoryOptionChange = useCallback(
-    (value: string) => {
-      const mapped = categoryValueMap[value];
-      if (mapped) {
-        formik.setFieldValue("categoryId", mapped.categoryId);
-        formik.setFieldValue("subCategoryId", mapped.subCategoryId);
-      }
-    },
-    [categoryValueMap, formik]
-  );
+  (value: string) => {
+    const mapped = categoryValueMap[value];
+
+    // Only allow subcategory selections
+    if (mapped && mapped.subCategoryId) {
+      formik.setFieldValue("categoryId", mapped.categoryId);
+      formik.setFieldValue("subCategoryId", mapped.subCategoryId);
+    }
+  },
+  [categoryValueMap, formik]
+);
 
   if (isEditMode && isLoadingProduct) {
     return (
