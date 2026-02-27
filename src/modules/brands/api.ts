@@ -14,16 +14,12 @@ function buildBrandFormData(payload: {
     brandName: string;
     description?: string;
     images?: File[];
-    primaryImageIndex?: number;
 }): FormData {
     const formData = new FormData();
     formData.append("brandName", payload.brandName);
     if (payload.description) formData.append("description", payload.description);
     if (payload.images?.length) {
         payload.images.forEach((file) => formData.append("images", file));
-        if (payload.primaryImageIndex !== undefined && payload.primaryImageIndex >= 0) {
-            formData.append("primaryImageIndex", String(payload.primaryImageIndex));
-        }
     }
     return formData;
 }

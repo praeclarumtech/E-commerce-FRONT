@@ -14,7 +14,6 @@ function ServiceViewModal({ isOpen, onClose, service }: ServiceViewModalProps) {
 
     const createdAt = service.createdAt as string | undefined;
     const updatedAt = service.updatedAt as string | undefined;
-    const name = service.name as string | undefined;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl" showCloseButton={false}>
@@ -30,12 +29,38 @@ function ServiceViewModal({ isOpen, onClose, service }: ServiceViewModalProps) {
                 <div className="overflow-y-auto flex-1 min-h-0">
                     <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
                         <h2 className="text-xl font-semibold text-gray-900 pr-8">
-                            {name || "—"}
+                            {service.title || "—"}
                         </h2>
+                        {service.key && (
+                            <p className="mt-1 text-sm font-mono text-gray-500">{service.key}</p>
+                        )}
                     </div>
 
                     <div className="p-6 space-y-6">
+                        {service.subtitle && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Subtitle</h3>
+                                <p className="mt-1 text-gray-700">{service.subtitle}</p>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
+                            {service.icon && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Icon</h3>
+                                    <p className="mt-1 text-gray-900 font-mono">{service.icon}</p>
+                                </div>
+                            )}
+                            {service.isActive !== undefined && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                                    <p className="mt-1">
+                                        <span className={`px-2 py-1 rounded-full text-xs ${service.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                            {service.isActive ? "Active" : "Inactive"}
+                                        </span>
+                                    </p>
+                                </div>
+                            )}
                             {createdAt && (
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Created At</h3>

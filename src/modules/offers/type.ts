@@ -1,24 +1,43 @@
+import type { OfferType, OfferTarget } from "./constants";
+
 export type Offer = {
     _id: string;
-    type:ENUM_OFFER_TYPE;
-    targetType: ENUM_OFFER_TARGET,
+    name?: string;
+    code?: string;
+    description?: string;
+    type?: OfferType;
+    value?: number;
+    minOrderValue?: number;
+    startDate?: string;
+    endDate?: string;
+    targetType?: OfferTarget;
+    targetIds?: string[];
+    isStackable?: boolean;
+    usageLimit?: number;
+    usageLimitPerUser?: number;
+    isActive?: boolean;
+    createdBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
     [key: string]: unknown;
 };
 
-export enum ENUM_OFFER_TYPE {
-    PERCENTAGE = 'percentage',
-    FLAT = 'flat',
-    FREE_SHIPPING = 'free_shipping',
-    BUY_X_GET_Y = 'buy_x_get_y',
-}
-
-export enum  ENUM_OFFER_TARGET {
-    PRODUCT = 'product',
-    CATEGORY = 'category',
-    VARIANT = 'variant',
-    CART = 'cart',
-}
-
-export type CreateOfferParams = Record<string, unknown>;
+export type CreateOfferParams = {
+    name: string;
+    code?: string;
+    description?: string;
+    type: OfferType;
+    value: number;
+    minOrderValue?: number;
+    startDate?: string;
+    endDate?: string;
+    targetType: OfferTarget;
+    targetIds?: string[];
+    isStackable?: boolean;
+    usageLimit?: number;
+    usageLimitPerUser?: number;
+    isActive?: boolean;
+    createdBy?: string;
+};
 
 export type UpdateOfferParams = Partial<CreateOfferParams>;

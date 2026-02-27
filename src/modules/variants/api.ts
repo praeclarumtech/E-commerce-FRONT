@@ -1,4 +1,5 @@
 export {
+    getVariants,
     getVariantsByProduct,
     getVariantById,
     createVariant,

@@ -36,7 +36,7 @@ function Services() {
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
                 isLoading={isDeleting}
-                serviceName={(serviceToDelete as { name?: string })?.name}
+                serviceName={(serviceToDelete as { title?: string })?.title}
             />
             <ServiceViewModal
                 isOpen={isViewModalOpen}

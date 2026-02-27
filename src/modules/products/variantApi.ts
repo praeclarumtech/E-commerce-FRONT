@@ -1,5 +1,11 @@
 import api from "../../shared/api";
+import { PaginationParams } from "../../shared/types";
 import { Variant, CreateVariantParams, UpdateVariantParams } from "./type";
+
+// Get all variants (list with pagination)
+export function getVariants({ params }: { params?: PaginationParams }) {
+    return api.get("/variants", { params });
+}
 
 // Get all variants for a product
 export function getVariantsByProduct(productId: string) {

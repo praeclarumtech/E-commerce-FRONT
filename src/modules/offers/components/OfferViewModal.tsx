@@ -35,7 +35,51 @@ function OfferViewModal({ isOpen, onClose, offer }: OfferViewModalProps) {
                     </div>
 
                     <div className="p-6 space-y-6">
+                        {offer.description && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                                <p className="mt-1 text-gray-700">{offer.description}</p>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
+                            {offer.code && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Code</h3>
+                                    <p className="mt-1 text-gray-900 font-mono">{offer.code}</p>
+                                </div>
+                            )}
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                                <p className="mt-1 text-gray-900 capitalize">{String(offer.type || "—").replace("_", " ")}</p>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Value</h3>
+                                <p className="mt-1 text-gray-900">{offer.value != null ? offer.value : "—"}</p>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Target</h3>
+                                <p className="mt-1 text-gray-900 capitalize">{String(offer.targetType || "—").replace("_", " ")}</p>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                                <p className="mt-1">
+                                    <span className={`px-2 py-1 rounded-full text-xs ${offer.isActive !== false ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                        {offer.isActive !== false ? "Active" : "Inactive"}
+                                    </span>
+                                </p>
+                            </div>
+                            {offer.startDate && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Start date</h3>
+                                    <p className="mt-1 text-gray-900">{moment(offer.startDate).format("DD MMM YYYY, hh:mm A")}</p>
+                                </div>
+                            )}
+                            {offer.endDate && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">End date</h3>
+                                    <p className="mt-1 text-gray-900">{moment(offer.endDate).format("DD MMM YYYY, hh:mm A")}</p>
+                                </div>
+                            )}
                             {createdAt && (
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Created At</h3>

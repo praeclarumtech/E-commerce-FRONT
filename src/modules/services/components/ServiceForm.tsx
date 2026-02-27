@@ -12,7 +12,11 @@ import { serviceSchema } from "../validations";
 import { Service } from "../type";
 
 type ServiceFormValues = {
-    name: string;
+    key: string;
+    title: string;
+    subtitle: string;
+    icon: string;
+    isActive: boolean;
 };
 
 function ServiceForm() {
@@ -41,7 +45,7 @@ function ServiceForm() {
     });
 
     const { isPending: isUpdating, mutate: updateMutate } = useMutation({
-        mutationFn: (payload: { id: string; data: { name: string } }) =>
+        mutationFn: (payload: { id: string; data: { key?: string; title?: string; subtitle?: string; icon?: string; isActive?: boolean } }) =>
             updateService(payload.id, payload.data),
         onSuccess: () => {
             toast.success("Service updated successfully!");
@@ -56,16 +60,27 @@ function ServiceForm() {
 
     const formik = useFormik<ServiceFormValues>({
         initialValues: {
-            name: "",
+            key: "",
+            title: "",
+            subtitle: "",
+            icon: "",
+            isActive: true,
         },
         validationSchema: serviceSchema,
         validateOnChange: false,
         enableReinitialize: true,
         onSubmit: (data) => {
+            const payload = {
+                key: data.key.trim(),
+                title: data.title.trim(),
+                subtitle: data.subtitle.trim(),
+                icon: data.icon.trim(),
+                isActive: data.isActive,
+            };
             if (isEditMode) {
-                updateMutate({ id: id!, data: { name: data.name } });
+                updateMutate({ id: id!, data: payload });
             } else {
-                createMutate({ name: data.name });
+                createMutate(payload);
             }
         },
     });
@@ -74,7 +89,11 @@ function ServiceForm() {
         if (serviceData) {
             const s = serviceData as Service;
             formik.setValues({
-                name: (s.name as string) || "",
+                key: (s.key as string) || "",
+                title: (s.title as string) || "",
+                subtitle: (s.subtitle as string) || "",
+                icon: (s.icon as string) || "",
+                isActive: s.isActive !== false,
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,19 +127,81 @@ function ServiceForm() {
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <div>
                             <Label>
-                                Service Name <span className="text-error-500">*</span>
+                                Key (slug) <span className="text-error-500">*</span>
                             </Label>
                             <Input
-                                placeholder="Enter service name"
+                                placeholder="e.g. free-shipping"
                                 type="text"
-                                name="name"
+                                name="key"
                                 onChange={formik.handleChange}
-                                value={formik.values.name}
+                                value={formik.values.key}
                                 className="mt-1.5"
                             />
-                            {formik.errors.name && formik.touched.name && (
-                                <p className="text-error-500 text-sm mt-1">{formik.errors.name}</p>
+                            {formik.errors.key && formik.touched.key && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.key}</p>
                             )}
+                        </div>
+
+                        <div>
+                            <Label>
+                                Title <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                placeholder="e.g. Free Shipping"
+                                type="text"
+                                name="title"
+                                onChange={formik.handleChange}
+                                value={formik.values.title}
+                                className="mt-1.5"
+                            />
+                            {formik.errors.title && formik.touched.title && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.title}</p>
+                            )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <Label>
+                                Subtitle <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                placeholder="e.g. On order over $99"
+                                type="text"
+                                name="subtitle"
+                                onChange={formik.handleChange}
+                                value={formik.values.subtitle}
+                                className="mt-1.5"
+                            />
+                            {formik.errors.subtitle && formik.touched.subtitle && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.subtitle}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <Label>
+                                Icon key <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                placeholder="e.g. truck"
+                                type="text"
+                                name="icon"
+                                onChange={formik.handleChange}
+                                value={formik.values.icon}
+                                className="mt-1.5"
+                            />
+                            {formik.errors.icon && formik.touched.icon && (
+                                <p className="text-error-500 text-sm mt-1">{formik.errors.icon}</p>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="isActive"
+                                checked={formik.values.isActive}
+                                onChange={(e) => formik.setFieldValue("isActive", e.target.checked)}
+                                className="rounded border-gray-300"
+                            />
+                            <Label htmlFor="isActive">Active</Label>
                         </div>
 
                         <div className="sm:col-span-2 flex items-center justify-end gap-3 pt-4">

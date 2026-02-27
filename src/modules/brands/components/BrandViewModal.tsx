@@ -42,12 +42,12 @@ function BrandViewModal({ isOpen, onClose, brand }: BrandViewModalProps) {
                             </div>
                         )}
 
-                        {brand.images && (brand.images as BrandImage[]).length > 0 && (
+                        {brand.images && brand.images.length > 0 && (
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 mb-3">Images</h3>
                                 <div className="flex flex-wrap gap-3">
-                                    {(brand.images as BrandImage[]).map((img, idx) => (
-                                        <div key={idx} className="relative">
+                                    {brand.images.map((img) => (
+                                        <div key={img._id ?? img.imageUrl} className="relative">
                                             <img
                                                 src={getImageUrl(img.imageUrl)}
                                                 alt=""
@@ -65,6 +65,16 @@ function BrandViewModal({ isOpen, onClose, brand }: BrandViewModalProps) {
                         )}
 
                         <div className="grid grid-cols-2 gap-4">
+                            {brand.isActive !== undefined && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                                    <p className="mt-1">
+                                        <span className={`px-2 py-1 rounded-full text-xs ${brand.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                            {brand.isActive ? "Active" : "Inactive"}
+                                        </span>
+                                    </p>
+                                </div>
+                            )}
                             {createdAt && (
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Created At</h3>

@@ -10,7 +10,8 @@ import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import { createBrand, getBrandById, updateBrand, buildBrandFormData } from "../api";
 import { brandSchema } from "../validations";
-import { Brand } from "../type";
+import { Brand, BrandImage } from "../type";
+import { getImageUrl } from "../../../shared/constant";
 
 type BrandFormValues = {
     brandName: string;
@@ -80,7 +81,6 @@ function BrandForm() {
                         brandName,
                         description,
                         images: imageFiles,
-                        primaryImageIndex: primaryImageIndex >= 0 && primaryImageIndex < imageFiles.length ? primaryImageIndex : 0,
                     });
                     updateMutate({ id: id!, data: formData });
                 } else {
@@ -91,7 +91,6 @@ function BrandForm() {
                     brandName,
                     description,
                     images: imageFiles.length > 0 ? imageFiles : undefined,
-                    primaryImageIndex: imageFiles.length > 0 ? (primaryImageIndex >= 0 && primaryImageIndex < imageFiles.length ? primaryImageIndex : 0) : undefined,
                 });
                 createMutate(formData);
             }
@@ -187,6 +186,21 @@ function BrandForm() {
 
                         <div className="sm:col-span-2">
                             <Label>Images (optional)</Label>
+                            {isEditMode && brandData && ((brandData as Brand).images?.length ?? 0) > 0 && (
+                                <div className="mt-1.5 mb-3">
+                                    <p className="text-xs text-gray-500 mb-2">Current images</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {((brandData as Brand).images as BrandImage[]).map((img) => (
+                                            <img
+                                                key={img._id ?? img.imageUrl}
+                                                src={getImageUrl(img.imageUrl)}
+                                                alt=""
+                                                className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <p className="text-xs text-gray-500 mt-1 mb-2">
                                 Upload images. Click &quot;Add images&quot; to select one or more files. First image is primary by default; click &quot;Set primary&quot; on another to change.
                             </p>

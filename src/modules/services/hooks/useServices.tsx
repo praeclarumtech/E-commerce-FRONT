@@ -29,7 +29,17 @@ function useServices() {
     const { data, isLoading, isFetching, isRefetching, error } = useQuery({
         queryKey: ["services", params],
         queryFn: () => getServices({ params: { page: params.page, limit: params.limit, search: params.search } }),
-        select: (response) => response.data.data,
+        select: (response) => {
+            const body = response.data as { data?: Service[] | { items: Service[]; page?: number; totalPages?: number; total?: number }; items?: Service[] } | Service[];
+            if (Array.isArray(body)) {
+                return { items: body, page: 1, totalPages: 1, total: body.length };
+            }
+            const inner = (body as { data?: Service[] | { items: Service[] }; items?: Service[] }).data ?? body;
+            if (Array.isArray(inner)) {
+                return { items: inner, page: 1, totalPages: 1, total: inner.length };
+            }
+            return inner as { items: Service[]; page?: number; totalPages?: number; total?: number };
+        },
     });
 
     const deleteMutation = useMutation({
@@ -95,15 +105,24 @@ function useServices() {
                 cell: (info) => info.row.index + 1,
             },
             {
-                header: "Name",
-                accessorKey: "name",
+                header: "Title",
+                accessorKey: "title",
                 cell: (info) => (
                     <button
                         onClick={() => handleViewClick(info.row.original)}
                         className="font-medium text-brand-600 hover:text-brand-700 hover:underline text-left"
                     >
-                        {(info.row.original as Service).name as string || "—"}
+                        {(info.row.original as Service).title as string || "—"}
                     </button>
+                ),
+            },
+            {
+                header: "Key",
+                accessorKey: "key",
+                cell: (info) => (
+                    <span className="text-gray-600 font-mono text-sm">
+                        {(info.row.original as Service).key as string || "—"}
+                    </span>
                 ),
             },
             {
