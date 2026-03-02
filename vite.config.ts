@@ -15,5 +15,6 @@ export default defineConfig({
       },
     }),
   ],
+  base:"/e-comm/",
   envPrefix:"ECOMMERCE"
 });

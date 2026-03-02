@@ -1,11 +1,45 @@
+import { lazy } from "react";
+
+import { Route, Routes } from "react-router-dom";
+import clsx from "clsx";
+
+import withAuth from "../shared/component/withAuth";
+
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Route, Routes } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
-import UserProfiles from "../pages/UserProfiles";
-import AuthDash from "../pages/Dashboard/Home";
-import withAuth from "../shared/component/withAuth";
+import { UserProvider } from "../context/UserDataContext";
+import CountryForm from "../masterModule/country/component/CountryForm";
+import Country from "../masterModule/country/component/Country";
+import StateForm from "../masterModule/state/comonent/StateForm";
+import State from "../masterModule/state/comonent/State";
+import CityForm from "../masterModule/city/component/CityForm";
+import City from "../masterModule/city/component/City";
+
+const Profile = lazy(() => import("../modules/profile/components/Profile"));
+const Users = lazy(() => import("../modules/users/components/Users"));
+const UserForm = lazy(() => import("../modules/users/components/UserForm"));
+const Products = lazy(() => import("../modules/products/components/Products"));
+const ProductForm = lazy(
+  () => import("../modules/products/components/ProductForm")
+);
+const Categories = lazy(
+  () => import("../modules/categories/components/Categories")
+);
+const CategoryForm = lazy(
+  () => import("../modules/categories/components/CategoryForm")
+);
+const Roles = lazy(() => import("../modules/roles/components/Roles"));
+const RoleForm = lazy(() => import("../modules/roles/components/RoleForm"));
+const Brands = lazy(() => import("../modules/brands/components/Brands"));
+const BrandForm = lazy(() => import("../modules/brands/components/BrandForm"));
+const Offers = lazy(() => import("../modules/offers/components/Offers"));
+const OfferForm = lazy(() => import("../modules/offers/components/OfferForm"));
+const Orders = lazy(() => import("../modules/orders/components/Orders"));
+const Inventory = lazy(() => import("../modules/inventory/components/Inventory"));
+const Services = lazy(() => import("../modules/services/components/Services"));
+const ServiceForm = lazy(() => import("../modules/services/components/ServiceForm"));
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -17,14 +51,53 @@ const LayoutContent: React.FC = () => {
         <Backdrop />
       </div>
       <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
-          } ${isMobileOpen ? "ml-0" : ""}`}
+        className={clsx(
+          "flex-1 transition-all duration-300 ease-in-out flex flex-col h-screen",
+          {
+            "lg:ml-[290px]": isExpanded || isHovered,
+            "lg:ml-[90px]": !isExpanded && !isHovered,
+            "ml-0": isMobileOpen,
+          }
+        )}
       >
         <AppHeader />
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6 flex-1 w-full overflow-hidden">
           <Routes>
-            <Route index element={<AuthDash />} />
-            <Route path="/profile" element={<UserProfiles />} />
+            <Route index element={<>Home</>} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/users/add" element={<UserForm />} />
+            <Route path="/users/edit/:id" element={<UserForm />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/add" element={<ProductForm />} />
+            <Route path="/products/edit/:id" element={<ProductForm />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/categories/add" element={<CategoryForm />} />
+            <Route path="/categories/edit/:id" element={<CategoryForm />} />
+            <Route path="/roles" element={<Roles />} />
+            <Route path="/roles/add" element={<RoleForm />} />
+            <Route path="/roles/edit/:id" element={<RoleForm />} />
+            <Route path="/brands" element={<Brands />} />
+            <Route path="/brands/add" element={<BrandForm />} />
+            <Route path="/brands/edit/:id" element={<BrandForm />} />
+            <Route path="/offers" element={<Offers />} />
+            <Route path="/offers/add" element={<OfferForm />} />
+            <Route path="/offers/edit/:id" element={<OfferForm />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/add" element={<ServiceForm />} />
+            <Route path="/services/edit/:id" element={<ServiceForm />} />
+            <Route path="/country" element={<Country />} />
+            <Route path="/country/add" element={<CountryForm />} />
+            <Route path="/country/edit/:id" element={<CountryForm />} />
+            <Route path="/state" element={<State />} />
+            <Route path="/state/add" element={<StateForm />} />
+            <Route path="/state/edit/:id" element={<StateForm />} />
+            <Route path="/city" element={<City />} />
+            <Route path="/city/add" element={<CityForm />} />
+            <Route path="/city/edit/:id" element={<CityForm />} />
+            <Route path="*" element={<>Not Found</>} />
           </Routes>
         </div>
       </div>
@@ -35,7 +108,9 @@ const LayoutContent: React.FC = () => {
 const AppLayout: React.FC = () => {
   return (
     <SidebarProvider>
-      <LayoutContent />
+      <UserProvider>
+        <LayoutContent />
+      </UserProvider>
     </SidebarProvider>
   );
 };
