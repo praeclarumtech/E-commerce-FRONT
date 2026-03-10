@@ -15,7 +15,7 @@ const useAuth = create<AuthState>((set) => ({
         set({ __token: token });
     },
     getToken: () => localStorage.getItem('__token'),
-    isAuthenticated: () => localStorage.getItem('__token') !== undefined,
+    isAuthenticated: () => !!localStorage.getItem('__token'),
     logout: () => {
         localStorage.removeItem('__token');
         set({ __token: undefined });

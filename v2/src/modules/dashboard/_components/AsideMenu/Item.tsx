@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 import Icon from "../../../_components/Icon";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getButtonColor } from "../../../_lib/colors";
 import AsideMenuList from "./List";
 import type { MenuAsideItem } from "../../../_interfaces";
+import { useAuth } from "../../../_stores/authSlice";
 
 type Props = {
   item: MenuAsideItem;
@@ -15,8 +16,16 @@ type Props = {
 const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
   const [isLinkActive, setIsLinkActive] = useState(false);
   const [isDropdownActive, setIsDropdownActive] = useState(false);
+  const navigate = useNavigate();
+  const logout = useAuth((s) => s.logout);
 
   const activeClassAddon = !item.color && isLinkActive ? "aside-menu-item-active font-bold" : "";
+
+  const handleLogout = () => {
+    logout();
+    props.onRouteChange();
+    navigate("/login", { replace: true });
+  };
 
   const { pathname } = useLocation();
 
@@ -30,9 +39,8 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
         <Icon path={item.icon} className={`flex-none ${activeClassAddon}`} w="w-16" size="18" />
       )}
       <span
-        className={`line-clamp-1 grow text-ellipsis ${
-          item.menu ? "" : "pr-12"
-        } ${activeClassAddon}`}
+        className={`line-clamp-1 grow text-ellipsis ${item.menu ? "" : "pr-12"
+          } ${activeClassAddon}`}
       >
         {item.label}
       </span>
@@ -56,7 +64,16 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
 
   return (
     <li>
-      {item.href && !item.href.startsWith("http") && (
+      {item.isLogout && (
+        <button
+          type="button"
+          className={componentClass}
+          onClick={handleLogout}
+        >
+          {asideMenuItemInnerContents}
+        </button>
+      )}
+      {!item.isLogout && item.href && !item.href.startsWith("http") && (
         <Link
           to={item.href}
           target={item.target}
@@ -66,16 +83,15 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
           {asideMenuItemInnerContents}
         </Link>
       )}
-      {item.href && item.href.startsWith("http") && (
-        <a
-          href={item.href}
-          target={item.target}
-          rel="noreferrer"
-          className={componentClass}
-          onClick={props.onRouteChange}
-        >
-          {asideMenuItemInnerContents}
-        </a>
+      {!item.isLogout && item.href && item.href.startsWith("http") && (<a
+        href={item.href}
+        target={item.target}
+        rel="noreferrer"
+        className={componentClass}
+        onClick={props.onRouteChange}
+      >
+        {asideMenuItemInnerContents}
+      </a>
       )}
       {!item.href && (
         <div className={componentClass} onClick={() => setIsDropdownActive(!isDropdownActive)}>
@@ -85,9 +101,8 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
       {item.menu && (
         <AsideMenuList
           menu={item.menu}
-          className={`aside-menu-dropdown ${
-            isDropdownActive ? "block dark:bg-slate-800/50" : "hidden"
-          }`}
+          className={`aside-menu-dropdown ${isDropdownActive ? "block dark:bg-slate-800/50" : "hidden"
+            }`}
           onRouteChange={props.onRouteChange}
           isDropdownList
         />

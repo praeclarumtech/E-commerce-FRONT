@@ -10,6 +10,7 @@ import ProfileForm from '../_profile/components/ProfileForm';
 const DashboardPage = lazy(() => import('../dashboard/page'));
 const ProfilePage = lazy(() => import('../_profile/components'));
 const RolesPage = lazy(() => import('../roles/routes'));
+const UsersPage = lazy(() => import('../users/routes'));
 
 function Auth() {
 
@@ -26,6 +27,7 @@ function Auth() {
                     <Route index element={<DashboardPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/roles/*" element={<RolesPage />} />
+                    <Route path="/users/*" element={<UsersPage />} />
                 </Routes>
             </SectionMain >
         </LayoutAuthenticated>

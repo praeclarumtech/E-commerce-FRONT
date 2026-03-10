@@ -5,115 +5,122 @@ import SectionTitleLineWithButton from "../../_components/Section/TitleLineWithB
 import Table from "../../../shared/components/Table"
 import OverlayLayer from "../../_components/OverlayLayer"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createRole, deleteRole, get, updateRole, type RolePayload } from "../api"
+import { createUser, deleteUser, get, updateUser, normalizeUsersListResponse } from "../api"
+import type { UserPayload, UsersListApiResponse } from "../api"
 import columns from "../columns"
 import Button from "../../_components/Button"
-import { toast } from "../../_lib/toast";
+import { toast } from "../../_lib/toast"
 import type { AxiosError } from "axios"
-import type { RoleResponse } from "../interface"
-import RoleForm from "./RoleForm"
+import type { UserResponse } from "../interface"
+import UserForm from "./UserForm"
 
-function Roles() {
+function Users() {
     const [page, setPage] = useState(1);
-
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
+    const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
 
-    const { data: roles, refetch } = useQuery({
-        queryKey: ['roles', page],
+    const { data: users, refetch } = useQuery({
+        queryKey: ['users', page],
         queryFn: () => get({ params: { page, limit: 10 } }),
-        select: (response) => response.data.data,
+        select: (response) => {
+            const body = response.data as UsersListApiResponse | { data?: UsersListApiResponse };
+            const raw = body && "items" in body ? body : body?.data;
+            if (!raw || !Array.isArray(raw.items)) return undefined;
+            return normalizeUsersListResponse(raw);
+        },
     });
 
     const deleteMutation = useMutation({
-        mutationFn: deleteRole,
+        mutationFn: deleteUser,
         onSuccess: () => {
-            toast.success("Role deleted successfully!");
+            toast.success("User deleted successfully!");
             refetch();
         },
         onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error.response?.data?.message ?? "Failed to delete role");
+            toast.error(error.response?.data?.message ?? "Failed to delete user");
         }
     });
 
     const createMutation = useMutation({
-        mutationFn: (payload: RolePayload) => createRole(payload),
+        mutationFn: (payload: UserPayload) => createUser(payload),
         onSuccess: () => {
-            toast.success("Role created successfully!");
+            toast.success("User created successfully!");
             setIsFormOpen(false);
-            setSelectedRole(null);
+            setSelectedUser(null);
             refetch();
         },
         onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error.response?.data?.message ?? "Failed to create role");
+            toast.error(error.response?.data?.message ?? "Failed to create user");
         }
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, payload }: { id: string; payload: RolePayload }) =>
-            updateRole(id, payload),
+        mutationFn: ({ id, payload }: { id: string; payload: Partial<UserPayload> }) =>
+            updateUser(id, payload),
         onSuccess: () => {
-            toast.success("Role updated successfully!");
+            toast.success("User updated successfully!");
             setIsFormOpen(false);
-            setSelectedRole(null);
+            setSelectedUser(null);
             refetch();
         },
         onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error.response?.data?.message ?? "Failed to update role");
+            toast.error(error.response?.data?.message ?? "Failed to update user");
         }
     });
 
-    const handleFormSubmit = (values: RolePayload) => {
-        if (selectedRole) {
-            updateMutation.mutate({ id: selectedRole._id, payload: values });
+    const handleFormSubmit = (values: UserPayload) => {
+        if (selectedUser) {
+            const payload = { ...values };
+            if (!payload.password) delete payload.password;
+            updateMutation.mutate({ id: selectedUser._id, payload });
         } else {
             createMutation.mutate(values);
         }
     };
 
-    const roleColumns = useMemo(() => columns(), [roles]);
+    const userColumns = useMemo(() => columns(), [users]);
 
     return (
         <>
-            <SectionTitleLineWithButton icon={mdiTableBorder} title="Roles" main>
+            <SectionTitleLineWithButton icon={mdiTableBorder} title="Users" main>
                 <Button
-                       type="button"
-                    label="Add Role"
+                    type="button"
+                    label="Add User"
                     color="info"
                     className="py-3 font-medium"
                     small
                     onClick={() => {
-                        setSelectedRole(null);
+                        setSelectedUser(null);
                         setIsFormOpen(true);
                     }}
                 />
             </SectionTitleLineWithButton>
             <CardBox className="mb-6" hasTable>
-                {roles?.items && (
+                {users && (
                     <Table
-                        data={roles}
-                        columns={roleColumns}
+                        data={users}
+                        columns={userColumns}
                         onPageChange={(pageIndex) => setPage(pageIndex + 1)}
-                        deleteMutation={deleteMutation}
                         onEdit={(row) => {
-                            setSelectedRole(row as RoleResponse);
+                            setSelectedUser(row as UserResponse);
                             setIsFormOpen(true);
                         }}
-                         deleteModalTitle="Delete Role"
-                        deleteModalMessage="Are you sure you want to delete this role?"
+                        deleteMutation={deleteMutation}
+                        deleteModalTitle="Delete User"
+                        deleteModalMessage="Are you sure you want to delete this user?"
                     />
                 )}
             </CardBox>
             {isFormOpen && (
-                <OverlayLayer onClick={() => { setIsFormOpen(false); setSelectedRole(null); }}>
+                <OverlayLayer onClick={() => { setIsFormOpen(false); setSelectedUser(null); }}>
                     <div className="flex w-11/12 max-w-md flex-col items-center justify-center">
                         <div className="z-50 w-full animate-fade-in shadow-lg">
-                            <RoleForm
-                                initialValues={selectedRole}
+                            <UserForm
+                                initialValues={selectedUser}
                                 onSubmit={handleFormSubmit}
                                 onCancel={() => {
                                     setIsFormOpen(false);
-                                    setSelectedRole(null);
+                                    setSelectedUser(null);
                                 }}
                                 isSubmitting={createMutation.isPending || updateMutation.isPending}
                             />
@@ -125,4 +132,4 @@ function Roles() {
     )
 }
 
-export default Roles
+export default Users
