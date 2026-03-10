@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { Formik, Form, Field } from "formik";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import type { AxiosError } from "axios";
 
 import Button from "../../_components/Button";
 import CardBox from "../../_components/CardBox";
@@ -10,6 +11,10 @@ import FormField from "../../_components/FormField";
 import Icon from "../../_components/Icon";
 import SectionFullScreen from "../../_components/Section/FullScreen";
 import { signupSchema } from "../validation";
+import { useMutation } from "@tanstack/react-query";
+import { register as registerApi } from "../api";
+import type { RegisterPayload } from "../interface";
+import { toast } from "../../_lib/toast";
 
 const passwordToggleStyle = {
     button: "absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800",
@@ -19,6 +24,18 @@ const passwordToggleStyle = {
 
 function SignUp() {
     const [showPassword, setShowPassword] = useState<boolean>(false);
+    const navigate = useNavigate();
+
+    const { isPending, mutate: registerFn } = useMutation({
+        mutationFn: (payload: RegisterPayload) => registerApi(payload),
+        onSuccess: () => {
+            toast.success("Account created successfully. Please sign in.");
+            navigate("/login", { replace: true });
+        },
+        onError: (error: AxiosError<{ message: string }>) => {
+            toast.error(error.response?.data?.message ?? "Registration failed");
+        },
+    });
 
     return (
         <SectionFullScreen bg="dark">
@@ -39,14 +56,12 @@ function SignUp() {
                                 lastName: "",
                                 email: "",
                                 phone: "",
-                                role: "",
+                                role: "user",
                                 password: "",
                             }}
                             validationSchema={signupSchema}
                             validateOnChange={false}
-                            onSubmit={(values) => {
-                                console.log(values);
-                            }}
+                            onSubmit={(values) => registerFn(values as RegisterPayload)}
                         >
                             {({ errors }) => (
                                 <Form>
@@ -123,6 +138,21 @@ function SignUp() {
                                             </>
                                         )}
                                     </FormField>
+                                    <FormField label="Role *" labelFor="role">
+                                        {({ className }) => (
+                                            <>
+                                                <Field as="select" name="role" id="role" className={className}>
+                                                    <option value="user">User</option>
+                                                    <option value="seller">Seller</option>
+                                                </Field>
+                                                {errors.role && (
+                                                    <p className="mt-1 text-xs text-red-400">
+                                                        {errors.role}
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </FormField>
                                     <FormField label="Password *" labelFor="password">
                                         {({ className }) => (
                                             <div className="relative">
@@ -171,6 +201,7 @@ function SignUp() {
                                         label="Sign Up"
                                         color="info"
                                         className="w-full py-3 font-medium"
+                                        disabled={isPending}
                                     />
 
                                     <p className="mt-6 text-center text-sm text-slate-400">

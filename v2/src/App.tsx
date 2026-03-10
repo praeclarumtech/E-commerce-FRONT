@@ -23,6 +23,7 @@ const toastClassNames = {
 const Auth = lazy(() => import('./modules/_routes/Auth'));
 const Login = lazy(() => import('./modules/_auth/components/Login'));
 const SignUp = lazy(() => import('./modules/_auth/components/SignUp'));
+const ForgotPassword = lazy(() => import('./modules/_auth/components/ForgotPassword'));
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/*" element={<Auth />} />
           </Routes>
         </Suspense>

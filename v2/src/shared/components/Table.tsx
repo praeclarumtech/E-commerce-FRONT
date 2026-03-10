@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CardBoxModal from "../../modules/_components/CardBox/Modal";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import Buttons from "../../modules/_components/Buttons";
-import { mdiEye, mdiTrashCan } from "@mdi/js";
+import { mdiPencil, mdiTrashCan } from "@mdi/js";
 import Button from "../../modules/_components/Button";
 import type { PaginationResponse } from "../interface";
 import type { UseMutationResult } from "@tanstack/react-query";
@@ -12,10 +12,13 @@ interface TableProps<TData> {
   data: PaginationResponse<TData>["data"];
   columns: ColumnDef<TData>[];
   onPageChange?: (pageIndex: number) => void;
+  onEdit?: (row: TData) => void;
   deleteMutation?: UseMutationResult<AxiosResponse<TData>, Error, string>;
+  deleteModalTitle?: string;
+  deleteModalMessage?: string;
 }
 
-const Table = <TData,>({ data, columns, onPageChange, deleteMutation }: TableProps<TData>) => {
+const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, deleteModalTitle = "Delete", deleteModalMessage = "Are you sure you want to delete this item?" }: TableProps<TData>) => {
   const [isModalTrashActive, setIsModalTrashActive] = useState(false);
   const [idToDelete, setIdToDelete] = useState<string>('');
 
@@ -27,7 +30,7 @@ const Table = <TData,>({ data, columns, onPageChange, deleteMutation }: TablePro
   const pageCount = data?.totalPages ?? 0;
 
   const dataTable = useReactTable({
-    data: data?.items ?? [],
+    data: data?.data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
@@ -50,7 +53,7 @@ const Table = <TData,>({ data, columns, onPageChange, deleteMutation }: TablePro
   return (
     <>
       <CardBoxModal
-        title="Delete Role"
+        title={deleteModalTitle}
         buttonColor="danger"
         buttonLabel="Delete"
         isActive={isModalTrashActive}
@@ -58,7 +61,7 @@ const Table = <TData,>({ data, columns, onPageChange, deleteMutation }: TablePro
         onCancel={handleModalAction}
       >
         <p>
-          Are you sure you want to delete this role?
+          {deleteModalMessage}
         </p>
       </CardBoxModal>
       <table>
@@ -83,19 +86,21 @@ const Table = <TData,>({ data, columns, onPageChange, deleteMutation }: TablePro
               ))}
               <td className="whitespace-nowrap before:hidden lg:w-1">
                 <Buttons type="justify-start lg:justify-end" noWrap>
-                  <Button
-                    color="info"
-                    icon={mdiEye}
-                    onClick={() => setIsModalTrashActive(true)}
-                    small
-                    isGrouped
-                  />
+                  {onEdit && (
+                    <Button
+                      color="info"
+                      icon={mdiPencil}
+                      onClick={() => onEdit(row.original)}
+                      small
+                      isGrouped
+                    />
+                  )}
                   <Button
                     color="danger"
                     icon={mdiTrashCan}
                     onClick={() => {
                       setIsModalTrashActive(true);
-                      setIdToDelete((row.original as any)._id);
+                      setIdToDelete((row.original as { _id: string })._id);
                     }}
                     small
                     isGrouped

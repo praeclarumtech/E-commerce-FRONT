@@ -1,4 +1,4 @@
-import { object, string } from "yup";
+import { object, string, ref } from "yup";
 
 const signinSchema = object().shape({
     email: string().email('Invalid email').required('Please enter you email.'),
@@ -45,11 +45,12 @@ const resetPasswordSchema = object().shape({
 
 const forgotPasswordSchema = object().shape({
     password: string()
-        .min(6)
-        .required('Password is required.'),
+        .min(6, "Password must be at least 6 characters")
+        .required("Password is required."),
     confirmPassword: string()
-        .min(6)
-        .required('Password is required.'),
+        .min(6, "Password must be at least 6 characters")
+        .required("Confirm password is required.")
+        .oneOf([ref("password")], "Passwords must match"),
 });
 
 const verifyMail = object().shape({
@@ -57,12 +58,23 @@ const verifyMail = object().shape({
 });
 
 const verifyOTPSchema = object().shape({
-    email: string().email('Invalid email').required('Please enter your email.'),
+    email: string().email("Invalid email").required("Please enter your email."),
     otp: string()
-        .length(6, 'OTP must be 6 digits')
-        .matches(/^\d{6}$/, 'OTP must be 6 digits')
-        .required('Please enter the OTP.'),
+        .length(6, "OTP must be 6 digits")
+        .matches(/^\d{6}$/, "OTP must be 6 digits")
+        .required("Please enter the OTP."),
 });
+
+const resetPasswordWithOTPSchema = verifyOTPSchema.concat(
+    object().shape({
+        newPassword: string()
+            .min(6, "Password must be at least 6 characters")
+            .required("Password is required."),
+        confirmPassword: string()
+            .required("Confirm password is required.")
+            .oneOf([ref("newPassword")], "Passwords must match"),
+    })
+);
 
 export {
     signinSchema,
@@ -71,4 +83,5 @@ export {
     forgotPasswordSchema,
     verifyMail,
     verifyOTPSchema,
-}
+    resetPasswordWithOTPSchema,
+};

@@ -7,6 +7,7 @@ import {
   mdiViewList,
   mdiTelevisionGuide,
   mdiShieldKey,
+  mdiAccountGroup,
 } from "@mdi/js";
 import type { MenuAsideItem } from "../../_interfaces";
 
@@ -20,6 +21,11 @@ const menuAside: MenuAsideItem[] = [
     href: "/roles",
     label: "Roles",
     icon: mdiShieldKey,
+  },
+  {
+    href: "/users",
+    label: "Users",
+    icon: mdiAccountGroup,
   },
   {
     href: "/dashboard/tables",

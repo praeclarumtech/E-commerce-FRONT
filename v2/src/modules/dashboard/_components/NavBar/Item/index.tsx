@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
 import Divider from "../../../../_components/Divider";
@@ -9,6 +9,7 @@ import NavBarMenuList from "../MenuList";
 import type { MenuNavBarItem } from "../../../../_interfaces";
 import { useDarkModeStore } from "../../../../_stores/darkModeSlice";
 import { useMainStore } from "../../../../_stores/mainSlice";
+import { useAuth } from "../../../../_stores/authSlice";
 
 type Props = {
   item: MenuNavBarItem;
@@ -18,8 +19,17 @@ type Props = {
 export default function NavBarItem({ item, ...props }: Props) {
   const userName = useMainStore((s) => s.userName);
   const setDarkMode = useDarkModeStore((s) => s.setDarkMode);
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
 
   const [isDropdownActive, setIsDropdownActive] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setIsDropdownActive(false);
+    props.onRouteChange();
+    navigate("/login", { replace: true });
+  };
 
   const componentClass = [
     "block lg:flex items-center relative cursor-pointer",
@@ -82,6 +92,21 @@ export default function NavBarItem({ item, ...props }: Props) {
 
   if (item.isDivider) {
     return <Divider navBar />;
+  }
+
+  if (item.isLogout) {
+    return (
+      <button
+        type="button"
+        className={componentClass}
+        onClick={handleLogout}
+      >
+        <div className="flex items-center bg-gray-100 p-3 lg:bg-transparent lg:p-0 dark:bg-slate-800 lg:dark:bg-transparent">
+          {item.icon && <Icon path={item.icon} className="transition-colors" />}
+          <span className="px-2 transition-colors">{item.label}</span>
+        </div>
+      </button>
+    );
   }
 
   if (item.href) {
