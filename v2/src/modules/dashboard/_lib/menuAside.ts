@@ -1,12 +1,14 @@
 import {
-  mdiAccountCircle,
+  mdiAccountGroup,
   mdiMonitor,
-  mdiAlertCircle,
-  mdiSquareEditOutline,
-  mdiTable,
-  mdiViewList,
-  mdiTelevisionGuide,
   mdiShieldKey,
+  mdiFolderOutline,
+  mdiTagOutline,
+  mdiPackageVariant,
+  mdiPercentBoxOutline,
+  mdiCartOutline,
+  mdiArchive,
+  mdiCogOutline,
 } from "@mdi/js";
 import type { MenuAsideItem } from "../../_interfaces";
 
@@ -22,41 +24,44 @@ const menuAside: MenuAsideItem[] = [
     icon: mdiShieldKey,
   },
   {
-    href: "/dashboard/tables",
-    label: "Tables",
-    icon: mdiTable,
+    href: "/users",
+    label: "Users",
+    icon: mdiAccountGroup,
   },
   {
-    href: "/dashboard/forms",
-    label: "Forms",
-    icon: mdiSquareEditOutline,
+    href: "/categories",
+    label: "Categories",
+    icon: mdiFolderOutline,
   },
   {
-    href: "/dashboard/ui",
-    label: "UI",
-    icon: mdiTelevisionGuide,
+    href: "/brands",
+    label: "Brands",
+    icon: mdiTagOutline,
   },
   {
-    href: "/profile",
-    label: "Profile",
-    icon: mdiAccountCircle,
+    href: "/products",
+    label: "Products",
+    icon: mdiPackageVariant,
   },
   {
-    href: "/error",
-    label: "Error",
-    icon: mdiAlertCircle,
+    href: "/offers",
+    label: "Offers",
+    icon: mdiPercentBoxOutline,
   },
   {
-    label: "Dropdown",
-    icon: mdiViewList,
-    menu: [
-      {
-        label: "Item One",
-      },
-      {
-        label: "Item Two",
-      },
-    ],
+    href: "/orders",
+    label: "Orders",
+    icon: mdiCartOutline,
+  },
+  {
+    href: "/inventory",
+    label: "Inventory",
+    icon: mdiArchive,
+  },
+  {
+    href: "/services",
+    label: "Services",
+    icon: mdiCogOutline,
   },
 ];
 

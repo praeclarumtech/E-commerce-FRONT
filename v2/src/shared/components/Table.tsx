@@ -48,22 +48,24 @@ const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, de
       setIsModalTrashActive(false);
       setIdToDelete('');
     }
-  }, [idToDelete]);
+  }, [idToDelete, deleteMutation?.isSuccess]);
 
   return (
     <>
-      <CardBoxModal
-        title={deleteModalTitle}
-        buttonColor="danger"
-        buttonLabel="Delete"
-        isActive={isModalTrashActive}
-        onConfirm={() => deleteMutation?.mutate(idToDelete)}
-        onCancel={handleModalAction}
-      >
-        <p>
-          {deleteModalMessage}
-        </p>
-      </CardBoxModal>
+      {deleteMutation && (
+        <CardBoxModal
+          title={deleteModalTitle}
+          buttonColor="danger"
+          buttonLabel="Delete"
+          isActive={isModalTrashActive}
+          onConfirm={() => deleteMutation.mutate(idToDelete)}
+          onCancel={handleModalAction}
+        >
+          <p>
+            {deleteModalMessage}
+          </p>
+        </CardBoxModal>
+      )}
       <table>
         <thead>
           {dataTable.getHeaderGroups().map((headerGroup) => (
@@ -84,29 +86,33 @@ const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, de
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
-              <td className="whitespace-nowrap before:hidden lg:w-1">
-                <Buttons type="justify-start lg:justify-end" noWrap>
-                  {onEdit && (
-                    <Button
-                      color="info"
-                      icon={mdiPencil}
-                      onClick={() => onEdit(row.original)}
-                      small
-                      isGrouped
-                    />
-                  )}
-                  <Button
-                    color="danger"
-                    icon={mdiTrashCan}
-                    onClick={() => {
-                      setIsModalTrashActive(true);
-                      setIdToDelete((row.original as { _id: string })._id);
-                    }}
-                    small
-                    isGrouped
-                  />
-                </Buttons>
-              </td>
+              {(onEdit || deleteMutation) && (
+                <td className="whitespace-nowrap before:hidden lg:w-1">
+                  <Buttons type="justify-start lg:justify-end" noWrap>
+                    {onEdit && (
+                      <Button
+                        color="info"
+                        icon={mdiPencil}
+                        onClick={() => onEdit(row.original)}
+                        small
+                        isGrouped
+                      />
+                    )}
+                    {deleteMutation && (
+                      <Button
+                        color="danger"
+                        icon={mdiTrashCan}
+                        onClick={() => {
+                          setIsModalTrashActive(true);
+                          setIdToDelete((row.original as { _id: string })._id);
+                        }}
+                        small
+                        isGrouped
+                      />
+                    )}
+                  </Buttons>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

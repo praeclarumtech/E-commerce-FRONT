@@ -1,16 +1,17 @@
-import { lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { lazy } from "react";
+import { Route, Routes } from "react-router-dom";
 
-const Users = lazy(() => import('./components'));
+const UsersList = lazy(() => import("./components"));
+const UserForm = lazy(() => import("./components/UserForm"));
 
 function UsersRoutes() {
   return (
     <Routes>
-      <Route index element={<Users />} />
-      <Route path="add" element={<Users />} />
-      <Route path="edit/:id" element={<Users />} />
+      <Route index element={<UsersList />} />
+      <Route path="add" element={<UserForm />} />
+      <Route path="edit/:id" element={<UserForm />} />
     </Routes>
-  )
+  );
 }
 
-export default UsersRoutes
+export default UsersRoutes;

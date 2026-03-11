@@ -11,6 +11,13 @@ const DashboardPage = lazy(() => import('../dashboard/page'));
 const ProfilePage = lazy(() => import('../_profile/components'));
 const RolesPage = lazy(() => import('../roles/routes'));
 const UsersPage = lazy(() => import('../users/routes'));
+const CategoriesPage = lazy(() => import('../categories/routes'));
+const BrandsPage = lazy(() => import('../brands/routes'));
+const ProductsPage = lazy(() => import('../products/routes'));
+const OffersPage = lazy(() => import('../offers/routes'));
+const OrdersPage = lazy(() => import('../orders/routes'));
+const InventoryPage = lazy(() => import('../inventory/routes'));
+const ServicesPage = lazy(() => import('../services/routes'));
 
 function Auth() {
 
@@ -28,6 +35,13 @@ function Auth() {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/roles/*" element={<RolesPage />} />
                     <Route path="/users/*" element={<UsersPage />} />
+                    <Route path="/categories/*" element={<CategoriesPage />} />
+                    <Route path="/brands/*" element={<BrandsPage />} />
+                    <Route path="/products/*" element={<ProductsPage />} />
+                    <Route path="/offers/*" element={<OffersPage />} />
+                    <Route path="/orders/*" element={<OrdersPage />} />
+                    <Route path="/inventory/*" element={<InventoryPage />} />
+                    <Route path="/services/*" element={<ServicesPage />} />
                 </Routes>
             </SectionMain >
         </LayoutAuthenticated>

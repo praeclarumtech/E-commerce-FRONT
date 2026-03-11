@@ -1,25 +1,23 @@
-import { useMemo, useState } from "react"
-import { mdiTableBorder } from "@mdi/js"
-import CardBox from "../../_components/CardBox"
-import SectionTitleLineWithButton from "../../_components/Section/TitleLineWithButton"
-import Table from "../../../shared/components/Table"
-import OverlayLayer from "../../_components/OverlayLayer"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { createUser, deleteUser, get, updateUser, normalizeUsersListResponse } from "../api"
-import type { UserPayload, UsersListApiResponse } from "../api"
-import columns from "../columns"
-import Button from "../../_components/Button"
-import { toast } from "../../_lib/toast"
-import type { AxiosError } from "axios"
-import type { UserResponse } from "../interface"
-import UserForm from "./UserForm"
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { mdiTableBorder } from "@mdi/js";
+import CardBox from "../../_components/CardBox";
+import SectionTitleLineWithButton from "../../_components/Section/TitleLineWithButton";
+import Table from "../../../shared/components/Table";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { deleteUser, get, normalizeUsersListResponse } from "../api";
+import type { UsersListApiResponse } from "../api";
+import columns from "../columns";
+import Button from "../../_components/Button";
+import { toast } from "../../_lib/toast";
+import type { AxiosError } from "axios";
+import type { UserResponse } from "../interface";
 
 function Users() {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
 
-    const { data: users, refetch } = useQuery({
+    const { data: users, refetch, isLoading: isLoadingUsers } = useQuery({
         queryKey: ['users', page],
         queryFn: () => get({ params: { page, limit: 10 } }),
         select: (response) => {
@@ -41,43 +39,6 @@ function Users() {
         }
     });
 
-    const createMutation = useMutation({
-        mutationFn: (payload: UserPayload) => createUser(payload),
-        onSuccess: () => {
-            toast.success("User created successfully!");
-            setIsFormOpen(false);
-            setSelectedUser(null);
-            refetch();
-        },
-        onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error.response?.data?.message ?? "Failed to create user");
-        }
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: ({ id, payload }: { id: string; payload: Partial<UserPayload> }) =>
-            updateUser(id, payload),
-        onSuccess: () => {
-            toast.success("User updated successfully!");
-            setIsFormOpen(false);
-            setSelectedUser(null);
-            refetch();
-        },
-        onError: (error: AxiosError<{ message: string }>) => {
-            toast.error(error.response?.data?.message ?? "Failed to update user");
-        }
-    });
-
-    const handleFormSubmit = (values: UserPayload) => {
-        if (selectedUser) {
-            const payload = { ...values };
-            if (!payload.password) delete payload.password;
-            updateMutation.mutate({ id: selectedUser._id, payload });
-        } else {
-            createMutation.mutate(values);
-        }
-    };
-
     const userColumns = useMemo(() => columns(), [users]);
 
     return (
@@ -89,47 +50,32 @@ function Users() {
                     color="info"
                     className="py-3 font-medium"
                     small
-                    onClick={() => {
-                        setSelectedUser(null);
-                        setIsFormOpen(true);
-                    }}
+                    onClick={() => navigate("/users/add")}
                 />
             </SectionTitleLineWithButton>
             <CardBox className="mb-6" hasTable>
-                {users && (
+                {isLoadingUsers ? (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="h-10 w-10 animate-spin rounded-full border-2 border-b-blue-600 border-gray-200 dark:border-slate-700" />
+                    </div>
+                ) : users && users.items?.length > 0 ? (
                     <Table
                         data={users}
                         columns={userColumns}
                         onPageChange={(pageIndex) => setPage(pageIndex + 1)}
-                        onEdit={(row) => {
-                            setSelectedUser(row as UserResponse);
-                            setIsFormOpen(true);
-                        }}
+                        onEdit={(row) => navigate(`/users/edit/${(row as UserResponse)._id}`)}
                         deleteMutation={deleteMutation}
                         deleteModalTitle="Delete User"
                         deleteModalMessage="Are you sure you want to delete this user?"
                     />
+                ) : (
+                    <div className="py-12 text-center text-gray-500 dark:text-slate-400">
+                        No users yet. Click &quot;Add User&quot; to create one.
+                    </div>
                 )}
             </CardBox>
-            {isFormOpen && (
-                <OverlayLayer onClick={() => { setIsFormOpen(false); setSelectedUser(null); }}>
-                    <div className="flex w-11/12 max-w-md flex-col items-center justify-center">
-                        <div className="z-50 w-full animate-fade-in shadow-lg">
-                            <UserForm
-                                initialValues={selectedUser}
-                                onSubmit={handleFormSubmit}
-                                onCancel={() => {
-                                    setIsFormOpen(false);
-                                    setSelectedUser(null);
-                                }}
-                                isSubmitting={createMutation.isPending || updateMutation.isPending}
-                            />
-                        </div>
-                    </div>
-                </OverlayLayer>
-            )}
         </>
-    )
+    );
 }
 
-export default Users
+export default Users;

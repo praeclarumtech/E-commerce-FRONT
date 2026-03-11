@@ -20,7 +20,7 @@ export type UsersListResponse = PaginationResponse<UserResponse>["data"];
 
 export function normalizeUsersListResponse(raw: UsersListApiResponse): UsersListResponse {
     return {
-        data: raw.items,
+        items: raw.items,
         page: raw.page,
         totalPages: raw.totalPages,
         total: raw.total,
@@ -50,13 +50,45 @@ export function getUserById(id: string) {
 }
 
 export function createUser(payload: UserPayload) {
-    return api.post<UserResponse>('/users', payload);
+    return api.post<UserResponse>('/users/add', payload);
 }
 
 export function updateUser(id: string, payload: Partial<UserPayload>) {
-    return api.patch<UserResponse>(`/users/${id}`, payload);
+    return api.put<UserResponse>(`/users/${id}`, payload);
 }
 
 export function deleteUser(id: string) {
     return api.delete(`/users/${id}`);
+}
+
+/** Current user profile */
+export function getProfile() {
+  return api.get<{ data: ProfileResponse }>("/users/profile");
+}
+
+export type ProfileUpdatePayload = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+};
+
+export type ProfileResponse = {
+  _id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  role?: { _id: string; name?: string; isActive?: boolean };
+  [key: string]: unknown;
+};
+
+/** Update current user profile */
+export function updateProfile(payload: ProfileUpdatePayload) {
+  return api.put<{ data: ProfileResponse }>("/users/profile", payload);
+}
+
+/** Change password (current user). Backend may use POST /users/change-password or similar. */
+export function changePassword(payload: { currentPassword: string; newPassword: string }) {
+  return api.post("/users/change-password", payload);
 }

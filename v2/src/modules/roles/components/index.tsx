@@ -106,8 +106,8 @@ function Roles() {
             </CardBox>
             {isFormOpen && (
                 <OverlayLayer onClick={() => { setIsFormOpen(false); setSelectedRole(null); }}>
-                    <div className="flex w-11/12 max-w-md flex-col items-center justify-center">
-                        <div className="z-50 w-full animate-fade-in shadow-lg">
+                    <div className="flex w-11/12 max-w-md max-h-[90vh] flex-col items-center overflow-y-auto py-8">
+                        <div className="z-50 w-full shrink-0 animate-fade-in shadow-lg">
                             <RoleForm
                                 initialValues={selectedRole}
                                 onSubmit={handleFormSubmit}

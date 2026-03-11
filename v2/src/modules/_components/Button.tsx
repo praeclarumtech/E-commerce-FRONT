@@ -11,6 +11,7 @@ type Props = {
   href?: string;
   target?: string;
   type?: string;
+  form?: string;
   color?: ColorButtonKey;
   className?: string;
   asAnchor?: boolean;
@@ -30,6 +31,7 @@ export default function Button({
   href,
   target,
   type,
+  form,
   color = "white",
   className = "",
   asAnchor = false,
@@ -103,6 +105,7 @@ export default function Button({
     {
       className: componentClassString,
       type: type ?? "button",
+      form,
       target,
       disabled,
       onClick,
