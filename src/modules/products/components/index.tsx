@@ -5,12 +5,13 @@ import CardBox from "../../_components/CardBox";
 import SectionTitleLineWithButton from "../../_components/Section/TitleLineWithButton";
 import Table from "../../../shared/components/Table";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getProducts, deleteProduct } from "../api";
+import { getProducts, deleteProduct, getProductById } from "../api";
 import columns from "../columns";
 import Button from "../../_components/Button";
 import { toast } from "../../_lib/toast";
 import type { AxiosError } from "axios";
 import type { Product } from "../interface";
+import ViewProductModal from "./ViewProductModal";
 
 function normalizeProductsResponse(res: unknown): {
   items: Product[];
@@ -44,6 +45,8 @@ function normalizeProductsResponse(res: unknown): {
 export default function Products() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [viewProduct, setViewProduct] = useState<Product | null>(null);
+  const [viewProductId, setViewProductId] = useState<string | null>(null);
 
   const { data: products, refetch, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["products", page],
@@ -67,6 +70,15 @@ export default function Products() {
 
   const productColumns = useMemo(() => columns(), []);
 
+  const { data: viewProductData } = useQuery({
+    queryKey: ["product", viewProductId],
+    queryFn: () => getProductById(viewProductId!),
+    enabled: !!viewProductId,
+    select: (res) => res.data?.data as Product | undefined,
+  });
+
+  const productToView = viewProductId ? (viewProductData ?? viewProduct) : null;
+
   return (
     <>
       <SectionTitleLineWithButton icon={mdiPackageVariant} title="Products" main>
@@ -89,6 +101,11 @@ export default function Products() {
             data={products}
             columns={productColumns}
             onPageChange={(pageIndex) => setPage(pageIndex + 1)}
+            onView={(row) => {
+              const p = row as Product;
+              setViewProduct(p);
+              setViewProductId(p._id);
+            }}
             onEdit={(row) => navigate(`/products/edit/${(row as Product)._id}`)}
             deleteMutation={deleteMutation}
             deleteModalTitle="Delete Product"
@@ -100,6 +117,16 @@ export default function Products() {
           </div>
         )}
       </CardBox>
+
+      {productToView && (
+        <ViewProductModal
+          product={viewProductData ?? productToView}
+          onClose={() => {
+            setViewProduct(null);
+            setViewProductId(null);
+          }}
+        />
+      )}
     </>
   );
 }

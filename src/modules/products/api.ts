@@ -1,6 +1,6 @@
 import api from "../../shared/api";
 import type { PaginationParams } from "../../shared/interface";
-import type { Product } from "./interface";
+import type { Product, ProductVariant } from "./interface";
 import type { CreateProductParams, UpdateProductParams } from "./interface";
 
 export function getProducts({ params }: { params?: PaginationParams }) {
@@ -20,6 +20,7 @@ function buildProductFormData(payload: {
   price: number;
   isActive?: boolean;
   status?: string;
+  variants?: ProductVariant[];
   brandName?: string;
   rating?: number;
   comment?: string;
@@ -37,6 +38,7 @@ function buildProductFormData(payload: {
   if (payload.description !== undefined) formData.append("description", payload.description);
   if (payload.isActive !== undefined) formData.append("isActive", String(payload.isActive));
   if (payload.status) formData.append("status", payload.status);
+  if (payload.variants?.length) formData.append("variants", JSON.stringify(payload.variants));
   if (payload.brandName !== undefined) formData.append("brandName", payload.brandName);
   if (payload.rating !== undefined && payload.rating !== "") formData.append("rating", String(payload.rating));
   if (payload.comment !== undefined) formData.append("comment", payload.comment);
@@ -67,6 +69,7 @@ export function createProduct(data: CreateProductParams) {
     price: data.price,
     isActive: data.isActive,
     status: data.status,
+    variants: data.variants,
     brandName: data.brandName,
     rating: data.rating,
     comment: data.comment,
@@ -89,6 +92,7 @@ export function updateProduct({ id, data }: { id: string; data: UpdateProductPar
   if (data.brandName !== undefined) formData.append("brandName", data.brandName);
   if (data.rating !== undefined && data.rating !== "") formData.append("rating", String(data.rating));
   if (data.comment !== undefined) formData.append("comment", data.comment);
+  if (data.variants?.length) formData.append("variants", JSON.stringify(data.variants));
   if (data.bannerImage) {
     if (data.bannerImage instanceof File) formData.append("bannerImage", data.bannerImage);
     else formData.append("bannerImage", data.bannerImage);

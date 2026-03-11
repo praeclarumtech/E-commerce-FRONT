@@ -39,7 +39,7 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
         <Icon path={item.icon} className={`flex-none ${activeClassAddon}`} w="w-16" size="18" />
       )}
       <span
-        className={`line-clamp-1 grow text-ellipsis ${item.menu ? "" : "pr-12"
+        className={`min-w-0 flex-1 truncate ${item.menu ? "" : "pr-12"
           } ${activeClassAddon}`}
       >
         {item.label}
@@ -55,7 +55,7 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
   );
 
   const componentClass = [
-    "flex cursor-pointer",
+    "flex w-full min-w-0 cursor-pointer items-center",
     isDropdownList ? "py-3 px-6 text-sm" : "py-3",
     item.color
       ? getButtonColor(item.color, false, true)
@@ -67,10 +67,13 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
       {item.isLogout && (
         <button
           type="button"
-          className={componentClass}
+          className={`${componentClass} px-4`}
           onClick={handleLogout}
         >
-          {asideMenuItemInnerContents}
+          {item.icon && (
+            <Icon path={item.icon} className="flex-none shrink-0" w="w-16" size="18" />
+          )}
+          <span className="min-w-0 flex-1 truncate text-left">{item.label}</span>
         </button>
       )}
       {!item.isLogout && item.href && !item.href.startsWith("http") && (
@@ -83,7 +86,8 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
           {asideMenuItemInnerContents}
         </Link>
       )}
-      {!item.isLogout && item.href && item.href.startsWith("http") && (<a
+      {!item.isLogout && item.href && item.href.startsWith("http") && (
+        <a
         href={item.href}
         target={item.target}
         rel="noreferrer"
@@ -93,7 +97,7 @@ const AsideMenuItem = ({ item, isDropdownList = false, ...props }: Props) => {
         {asideMenuItemInnerContents}
       </a>
       )}
-      {!item.href && (
+      {!item.isLogout && !item.href && (
         <div className={componentClass} onClick={() => setIsDropdownActive(!isDropdownActive)}>
           {asideMenuItemInnerContents}
         </div>

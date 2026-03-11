@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CardBoxModal from "../../modules/_components/CardBox/Modal";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import Buttons from "../../modules/_components/Buttons";
-import { mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiPencil, mdiTrashCan, mdiEye } from "@mdi/js";
 import Button from "../../modules/_components/Button";
 import type { PaginationResponse } from "../interface";
 import type { UseMutationResult } from "@tanstack/react-query";
@@ -12,13 +12,14 @@ interface TableProps<TData> {
   data: PaginationResponse<TData>["data"];
   columns: ColumnDef<TData>[];
   onPageChange?: (pageIndex: number) => void;
+  onView?: (row: TData) => void;
   onEdit?: (row: TData) => void;
   deleteMutation?: UseMutationResult<AxiosResponse<TData>, Error, string>;
   deleteModalTitle?: string;
   deleteModalMessage?: string;
 }
 
-const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, deleteModalTitle = "Delete", deleteModalMessage = "Are you sure you want to delete this item?" }: TableProps<TData>) => {
+const Table = <TData,>({ data, columns, onPageChange, onView, onEdit, deleteMutation, deleteModalTitle = "Delete", deleteModalMessage = "Are you sure you want to delete this item?" }: TableProps<TData>) => {
   const [isModalTrashActive, setIsModalTrashActive] = useState(false);
   const [idToDelete, setIdToDelete] = useState<string>('');
 
@@ -66,15 +67,26 @@ const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, de
           </p>
         </CardBoxModal>
       )}
-      <table>
+      <table className="w-full table-fixed">
+        <colgroup>
+          {dataTable.getHeaderGroups()[0]?.headers.map((_, i) => (
+            <col key={i} />
+          ))}
+          {(onView || onEdit || deleteMutation) && <col style={{ width: onView ? "8rem" : "6rem" }} />}
+        </colgroup>
         <thead>
           {dataTable.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id}>
+                <th key={header.id} className="px-2 py-2 text-left text-sm font-medium">
                   {flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
               ))}
+              {(onView || onEdit || deleteMutation) && (
+                <th className="px-2 py-2 text-right text-sm font-medium">
+                  Actions
+                </th>
+              )}
             </tr>
           ))}
         </thead>
@@ -82,13 +94,22 @@ const Table = <TData,>({ data, columns, onPageChange, onEdit, deleteMutation, de
           {dataTable.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="whitespace-nowrap before:hidden lg:w-1">
+                <td key={cell.id} className="max-w-0 truncate px-2 py-2 before:hidden">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
-              {(onEdit || deleteMutation) && (
-                <td className="whitespace-nowrap before:hidden lg:w-1">
-                  <Buttons type="justify-start lg:justify-end" noWrap>
+              {(onView || onEdit || deleteMutation) && (
+                <td className="whitespace-nowrap px-2 py-2">
+                  <Buttons type="justify-end" noWrap>
+                    {onView && (
+                      <Button
+                        color="info"
+                        icon={mdiEye}
+                        onClick={() => onView(row.original)}
+                        small
+                        isGrouped
+                      />
+                    )}
                     {onEdit && (
                       <Button
                         color="info"

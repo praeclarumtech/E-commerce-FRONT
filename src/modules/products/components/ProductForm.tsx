@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FieldArray } from "formik";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { mdiClose, mdiUpload } from "@mdi/js";
@@ -21,16 +21,17 @@ import {
   updateProduct,
 } from "../api";
 import { productSchema } from "../validations";
-import type {
-  Product,
-  ProductFormValues,
+import {
   ENUM_PRODUCT_STATUS,
+  type Product,
+  type ProductFormValues,
+  type ProductVariant,
 } from "../interface";
 
 const statusOptions: { value: ENUM_PRODUCT_STATUS; label: string }[] = [
-  { value: "Draft" as ENUM_PRODUCT_STATUS, label: "Draft" },
-  { value: "Saved" as ENUM_PRODUCT_STATUS, label: "Saved" },
-  { value: "Publish" as ENUM_PRODUCT_STATUS, label: "Publish" },
+  { value: ENUM_PRODUCT_STATUS.DRAFT, label: "Draft" },
+  { value: ENUM_PRODUCT_STATUS.SAVED, label: "Saved" },
+  { value: ENUM_PRODUCT_STATUS.PUBLISH, label: "Publish" },
 ];
 
 const activeOptions = [
@@ -232,7 +233,8 @@ export default function ProductForm() {
     description: p?.description ?? "",
     price: p?.price ?? 0,
     isActive: p?.isActive ?? true,
-    status: (p?.status as ENUM_PRODUCT_STATUS) ?? ("Draft" as ENUM_PRODUCT_STATUS),
+    status: (p?.status as ENUM_PRODUCT_STATUS) ?? ENUM_PRODUCT_STATUS.DRAFT,
+    variants: Array.isArray(p?.variants) ? [...(p.variants as ProductVariant[])] : [],
     brandName: p?.brandName ?? "",
     rating: p?.rating ?? undefined,
     comment: p?.comment ?? "",
@@ -278,6 +280,9 @@ export default function ProductForm() {
                   brandName: data.brandName,
                   rating: data.rating,
                   comment: data.comment,
+                  variants: data.variants?.filter((v) => v?.name?.trim() && v?.value?.trim()).length
+                    ? data.variants.filter((v) => v?.name?.trim() && v?.value?.trim())
+                    : undefined,
                   images: imageFiles.length > 0 ? imageFiles : undefined,
                   removedImages: removedImageIds.length > 0 ? removedImageIds : undefined,
                   bannerImage: bannerFile ?? undefined,
@@ -370,6 +375,26 @@ export default function ProductForm() {
                   <FormField label="Brand Name" labelFor="brandName">
                     {({ className }) => <Field name="brandName" id="brandName" placeholder="Brand name" className={className} />}
                   </FormField>
+                  {isEditMode && (
+                    <div className="sm:col-span-2">
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">Variants (e.g. Size, Color)</label>
+                      <p className="mb-2 text-xs text-gray-500 dark:text-slate-400">Add variant name and value after product is created (e.g. Size / M, Color / Red)</p>
+                      <FieldArray name="variants">
+                        {({ push, remove, form }) => (
+                          <div className="space-y-2">
+                            {(form.values.variants ?? []).map((_: ProductVariant, index: number) => (
+                              <div key={index} className="flex flex-wrap items-center gap-2">
+                                <Field name={`variants.${index}.name`} placeholder="Name (e.g. Size)" className="flex-1 min-w-[100px] rounded border border-gray-700 px-3 py-2 h-10 bg-white dark:bg-slate-800 dark:border-slate-600" />
+                                <Field name={`variants.${index}.value`} placeholder="Value (e.g. M)" className="flex-1 min-w-[100px] rounded border border-gray-700 px-3 py-2 h-10 bg-white dark:bg-slate-800 dark:border-slate-600" />
+                                <Button type="button" label="Remove" color="danger" small outline onClick={() => remove(index)} />
+                              </div>
+                            ))}
+                            <Button type="button" label="+ Add variant" color="info" small outline onClick={() => push({ name: "", value: "" })} />
+                          </div>
+                        )}
+                      </FieldArray>
+                    </div>
+                  )}
                   <FormField label="Rating (0-5)" labelFor="rating">
                     {({ className }) => <Field name="rating" id="rating" type="number" min={0} max={5} step={0.1} className={className} />}
                   </FormField>
@@ -453,12 +478,6 @@ export default function ProductForm() {
                     )}
                   </div>
                 </div>
-                {isEditMode && id && (
-                  <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-                    <p className="text-sm font-medium text-gray-700 dark:text-slate-300">Variants</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Variants (e.g. size, color) can be managed in a future update.</p>
-                  </div>
-                )}
               </Form>
             );
           }}

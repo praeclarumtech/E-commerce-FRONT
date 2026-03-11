@@ -14,17 +14,25 @@ const columns = (): ColumnDef<UserResponse>[] => {
       accessorKey: "firstName",
       cell: (info) => {
         const { firstName, lastName } = info.row.original;
-        return [firstName, lastName].filter(Boolean).join(" ") || "-";
+        const name = [firstName, lastName].filter(Boolean).join(" ") || "-";
+        return <span className="block truncate" title={name}>{name}</span>;
       },
     },
     {
       header: "Email",
       accessorKey: "email",
+      cell: (info) => {
+        const email = info.row.original.email ?? "-";
+        return <span className="block truncate" title={String(email)}>{email}</span>;
+      },
     },
     {
       header: "Phone",
       accessorKey: "phone",
-      cell: (info) => info.row.original.phone ?? "-",
+      cell: (info) => {
+        const phone = info.row.original.phone ?? "-";
+        return <span className="block truncate" title={String(phone)}>{phone}</span>;
+      },
     },
     {
       header: "Gender",

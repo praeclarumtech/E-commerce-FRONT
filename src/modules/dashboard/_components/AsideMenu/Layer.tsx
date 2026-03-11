@@ -50,7 +50,7 @@ export default function AsideMenuLayer({ menu, className = "", ...props }: Props
         >
           <AsideMenuList menu={menu} onRouteChange={props.onRouteChange} />
         </div>
-        <ul>
+        <ul className="w-full min-w-0 border-t border-slate-700/50 dark:border-slate-700">
           <AsideMenuItem item={logoutItem} onRouteChange={props.onRouteChange} />
         </ul>
       </div>

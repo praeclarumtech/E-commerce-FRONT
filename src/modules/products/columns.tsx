@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import moment from "moment";
-import type { Product, ENUM_PRODUCT_STATUS } from "./interface";
+import { ENUM_PRODUCT_STATUS, type Product, type ProductVariant } from "./interface";
 
 function getStatusBadge(status: ENUM_PRODUCT_STATUS) {
   const statusConfig: Record<ENUM_PRODUCT_STATUS, string> = {
@@ -36,6 +36,19 @@ export default function productColumns(): ColumnDef<Product>[] {
           {info.row.original.status}
         </span>
       ),
+    },
+    {
+      header: "Variants",
+      accessorKey: "variants",
+      cell: (info) => {
+        const variants = (info.row.original.variants ?? []) as ProductVariant[];
+        if (variants.length === 0) return "—";
+        return (
+          <span className="block truncate" title={variants.map((v) => `${v.name}: ${v.value}`).join(", ")}>
+            {variants.map((v) => `${v.name}: ${v.value}`).join(", ")}
+          </span>
+        );
+      },
     },
     {
       header: "Active",
