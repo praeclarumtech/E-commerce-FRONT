@@ -19,11 +19,7 @@ export const offerSchema = object().shape({
     .test("min", "Value must be 0 or more", (v) => v === "" || Number(v) >= 0),
   minOrderValue: string()
     .optional()
-    .test(
-      "min",
-      "Min order value must be 0 or more",
-      (v) => !v || Number(v) >= 0,
-    ),
+    .test("min", "Min order value must be 0 or more", (v) => !v || Number(v) >= 0),
   startDate: string().optional(),
   endDate: string().optional(),
   targetType: string()
@@ -38,16 +34,10 @@ export const offerSchema = object().shape({
         v === ENUM_OFFER_TARGET.CATEGORY ||
         v === ENUM_OFFER_TARGET.VARIANT,
       then: (schema) =>
-        schema
-          .required("Select at least one target.")
-          .min(1, "Select at least one product/category/variant."),
+        schema.required("Select at least one target.").min(1, "Select at least one product/category/variant."),
     }),
   isStackable: boolean().optional(),
-  usageLimit: string()
-    .optional()
-    .test("min", "Must be at least 1", (v) => !v || Number(v) >= 1),
-  usageLimitPerUser: string()
-    .optional()
-    .test("min", "Must be at least 1", (v) => !v || Number(v) >= 1),
+  usageLimit: string().optional().test("min", "Must be at least 1", (v) => !v || Number(v) >= 1),
+  usageLimitPerUser: string().optional().test("min", "Must be at least 1", (v) => !v || Number(v) >= 1),
   isActive: boolean().optional(),
 });

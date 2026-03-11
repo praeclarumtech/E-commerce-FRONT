@@ -1,31 +1,32 @@
+import type { AxiosResponse } from "axios";
 import api from "../../shared/api";
-import { PaginationParams } from "../../shared/types";
-import { CreateRoleParams, UpdateRoleParams, RoleResponseData } from "./type";
+import type { PaginationParams, PaginationResponse } from "../../shared/interface";
 
-export function getRoles({ params }: { params: PaginationParams }) {
-    return api.get('/roles', { params });
+import type { RoleResponse } from "./interface";
+
+export interface RolePayload {
+    name: string;
+    isActive: boolean;
+    accessModules?: string[];
+}
+
+export function get({ params = {} }: { params?: PaginationParams } = {}):
+    Promise<AxiosResponse<PaginationResponse<RoleResponse>>> {
+    return api.get<PaginationResponse<RoleResponse>>('/roles', { params });
 }
 
 export function getRoleById(id: string) {
-    return api.get(`/roles/${id}`);
+    return api.get<RoleResponse>(`/roles/${id}`);
 }
 
-export function createRole(data: CreateRoleParams) {
-    return api.post<RoleResponseData>('/roles', data);
+export function createRole(payload: RolePayload) {
+    return api.post<RoleResponse>('/roles', payload);
 }
 
-export function updateRole({ id, data }: { id: string; data: UpdateRoleParams }) {
-    return api.put<RoleResponseData>(`/roles/${id}`, data);
+export function updateRole(id: string, payload: RolePayload) {
+    return api.patch<RoleResponse>(`/roles/${id}`, payload);
 }
 
 export function deleteRole(id: string) {
     return api.delete(`/roles/${id}`);
-}
-
-export function hardDeleteRole(id: string) {
-    return api.delete(`/roles/${id}/permanent`);
-}
-
-export function getAllRoles() {
-    return api.get('/roles', { params: { limit: 100 } });
 }
