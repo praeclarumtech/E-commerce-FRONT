@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Formik, Form, Field, FieldArray } from "formik";
+import { Formik, Form, Field } from "formik";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { mdiClose, mdiUpload } from "@mdi/js";
@@ -19,13 +19,16 @@ import {
   createProduct,
   getProductById,
   updateProduct,
+  getVariantsByProductId,
+  createVariant,
+  deleteVariant,
+  type VariantResponse,
 } from "../api";
 import { productSchema } from "../validations";
 import {
   ENUM_PRODUCT_STATUS,
   type Product,
   type ProductFormValues,
-  type ProductVariant,
 } from "../interface";
 
 const statusOptions: { value: ENUM_PRODUCT_STATUS; label: string }[] = [
@@ -66,6 +69,12 @@ export default function ProductForm() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [existingBanner, setExistingBanner] = useState<string | null>(null);
 
+  const [newVariantPrice, setNewVariantPrice] = useState<string>("");
+  const [newVariantStock, setNewVariantStock] = useState<string>("");
+  const [newVariantSku, setNewVariantSku] = useState<string>("");
+  const [newVariantAttrs, setNewVariantAttrs] = useState<{ name: string; value: string }[]>([{ name: "", value: "" }]);
+  const [newVariantImages, setNewVariantImages] = useState<File[]>([]);
+
   const { data: profileData } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
@@ -79,6 +88,35 @@ export default function ProductForm() {
     queryFn: () => getProductById(id!),
     enabled: isEditMode,
     select: (response) => response.data.data,
+  });
+
+  const { data: variantsData, refetch: refetchVariants } = useQuery({
+    queryKey: ["variants", id],
+    queryFn: () => getVariantsByProductId(id!),
+    enabled: isEditMode && !!id,
+    select: (res) => (res.data?.data ?? res.data ?? []) as VariantResponse[],
+  });
+
+  const createVariantMutation = useMutation({
+    mutationFn: createVariant,
+    onSuccess: () => {
+      toast.success("Variant added.");
+      refetchVariants();
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error?.response?.data?.message ?? "Failed to add variant");
+    },
+  });
+
+  const deleteVariantMutation = useMutation({
+    mutationFn: deleteVariant,
+    onSuccess: () => {
+      toast.success("Variant removed.");
+      refetchVariants();
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error?.response?.data?.message ?? "Failed to remove variant");
+    },
   });
 
   const { data: categoriesData } = useQuery({
@@ -234,7 +272,6 @@ export default function ProductForm() {
     price: p?.price ?? 0,
     isActive: p?.isActive ?? true,
     status: (p?.status as ENUM_PRODUCT_STATUS) ?? ENUM_PRODUCT_STATUS.DRAFT,
-    variants: Array.isArray(p?.variants) ? [...(p.variants as ProductVariant[])] : [],
     brandName: p?.brandName ?? "",
     rating: p?.rating ?? undefined,
     comment: p?.comment ?? "",
@@ -280,9 +317,6 @@ export default function ProductForm() {
                   brandName: data.brandName,
                   rating: data.rating,
                   comment: data.comment,
-                  variants: data.variants?.filter((v) => v?.name?.trim() && v?.value?.trim()).length
-                    ? data.variants.filter((v) => v?.name?.trim() && v?.value?.trim())
-                    : undefined,
                   images: imageFiles.length > 0 ? imageFiles : undefined,
                   removedImages: removedImageIds.length > 0 ? removedImageIds : undefined,
                   bannerImage: bannerFile ?? undefined,
@@ -375,24 +409,181 @@ export default function ProductForm() {
                   <FormField label="Brand Name" labelFor="brandName">
                     {({ className }) => <Field name="brandName" id="brandName" placeholder="Brand name" className={className} />}
                   </FormField>
-                  {isEditMode && (
-                    <div className="sm:col-span-2">
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">Variants (e.g. Size, Color)</label>
-                      <p className="mb-2 text-xs text-gray-500 dark:text-slate-400">Add variant name and value after product is created (e.g. Size / M, Color / Red)</p>
-                      <FieldArray name="variants">
-                        {({ push, remove, form }) => (
-                          <div className="space-y-2">
-                            {(form.values.variants ?? []).map((_: ProductVariant, index: number) => (
-                              <div key={index} className="flex flex-wrap items-center gap-2">
-                                <Field name={`variants.${index}.name`} placeholder="Name (e.g. Size)" className="flex-1 min-w-[100px] rounded border border-gray-700 px-3 py-2 h-10 bg-white dark:bg-slate-800 dark:border-slate-600" />
-                                <Field name={`variants.${index}.value`} placeholder="Value (e.g. M)" className="flex-1 min-w-[100px] rounded border border-gray-700 px-3 py-2 h-10 bg-white dark:bg-slate-800 dark:border-slate-600" />
-                                <Button type="button" label="Remove" color="danger" small outline onClick={() => remove(index)} />
-                              </div>
-                            ))}
-                            <Button type="button" label="+ Add variant" color="info" small outline onClick={() => push({ name: "", value: "" })} />
-                          </div>
-                        )}
-                      </FieldArray>
+                  {isEditMode && id && (
+                    <div className="sm:col-span-2 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                      <p className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">Variants (managed via Variant API)</p>
+                      {variantsData && variantsData.length > 0 && (
+                        <ul className="mb-4 space-y-2">
+                          {variantsData.map((v) => (
+                            <li key={v._id} className="flex flex-wrap items-center gap-3 rounded border border-gray-200 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800">
+                              {Array.isArray(v.images) && v.images.length > 0 && (
+                                <div className="flex flex-shrink-0 gap-1">
+                                  {v.images.map((img, imgIdx) => {
+                                    const src = getImageUrl(img?.imageUrl ?? (typeof img === "object" ? img : null));
+                                    if (!src) return null;
+                                    return (
+                                      <img
+                                        key={img?._id ?? img?.imageUrl ?? imgIdx}
+                                        src={src}
+                                        alt=""
+                                        className="h-12 w-12 rounded border border-gray-200 object-cover dark:border-slate-600"
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
+                                ${Number(v?.price ?? 0).toFixed(2)} · Stock: {Number(v?.stock ?? 0)}
+                                {v?.sku ? ` · SKU: ${v.sku}` : ""}
+                                {Object.keys(v?.attributes ?? {}).length ? ` · ${Object.entries(v.attributes).map(([k, val]) => `${k}: ${val}`).join(", ")}` : ""}
+                              </span>
+                              <Button
+                                type="button"
+                                label="Delete"
+                                color="danger"
+                                small
+                                outline
+                                onClick={() => deleteVariantMutation.mutate(v._id)}
+                                disabled={deleteVariantMutation.isPending}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">Add new variant</p>
+                        <div className="flex flex-wrap gap-2">
+                          <input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Price"
+                            value={newVariantPrice}
+                            onChange={(e) => setNewVariantPrice(e.target.value)}
+                            className={inputClass}
+                          />
+                          <input
+                            type="number"
+                            min={0}
+                            placeholder="Stock"
+                            value={newVariantStock}
+                            onChange={(e) => setNewVariantStock(e.target.value)}
+                            className={inputClass}
+                          />
+                          <input
+                            type="text"
+                            placeholder="SKU (optional)"
+                            value={newVariantSku}
+                            onChange={(e) => setNewVariantSku(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500 dark:text-slate-400">Attributes (e.g. Size: M, Color: Red)</p>
+                          {(newVariantAttrs).map((attr, idx) => (
+                            <div key={idx} className="flex flex-wrap gap-2">
+                              <input
+                                type="text"
+                                placeholder="Name"
+                                value={attr.name}
+                                onChange={(e) => setNewVariantAttrs((prev) => prev.map((a, i) => (i === idx ? { ...a, name: e.target.value } : a)))}
+                                className="min-w-[80px] rounded border border-gray-700 px-2 py-1.5 text-sm dark:bg-slate-800 dark:border-slate-600"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Value"
+                                value={attr.value}
+                                onChange={(e) => setNewVariantAttrs((prev) => prev.map((a, i) => (i === idx ? { ...a, value: e.target.value } : a)))}
+                                className="min-w-[80px] rounded border border-gray-700 px-2 py-1.5 text-sm dark:bg-slate-800 dark:border-slate-600"
+                              />
+                              <Button type="button" label="−" color="danger" small outline onClick={() => setNewVariantAttrs((prev) => prev.filter((_, i) => i !== idx))} />
+                            </div>
+                          ))}
+                          <Button type="button" label="+ Add attribute row" color="whiteDark" small outline onClick={() => setNewVariantAttrs((prev) => [...prev, { name: "", value: "" }])} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500 dark:text-slate-400">Variant images (optional)</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            id="variant-images-input"
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (files?.length) setNewVariantImages((prev) => [...prev, ...Array.from(files)]);
+                              e.target.value = "";
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            label="Add images"
+                            icon={mdiUpload}
+                            color="whiteDark"
+                            small
+                            outline
+                            onClick={() => document.getElementById("variant-images-input")?.click()}
+                          />
+                          {newVariantImages.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {newVariantImages.map((file, idx) => (
+                                <div key={`${file.name}-${idx}`} className="relative">
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    alt=""
+                                    className="h-16 w-16 rounded-lg border border-gray-200 object-cover dark:border-slate-600"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setNewVariantImages((prev) => prev.filter((_, i) => i !== idx))}
+                                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                                  >
+                                    <Icon path={mdiClose} size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          label="Add variant"
+                          color="info"
+                          small
+                          onClick={() => {
+                            const price = parseFloat(newVariantPrice);
+                            const stock = parseInt(newVariantStock, 10);
+                            if (Number.isNaN(price) || price < 0 || Number.isNaN(stock) || stock < 0) {
+                              toast.error("Please enter valid price and stock.");
+                              return;
+                            }
+                            const attributes: Record<string, string> = {};
+                            newVariantAttrs.forEach((a) => {
+                              if (a.name?.trim()) attributes[a.name.trim()] = a.value?.trim() ?? "";
+                            });
+                            createVariantMutation.mutate(
+                              {
+                                productId: id,
+                                price,
+                                stock,
+                                sku: newVariantSku.trim() || undefined,
+                                attributes,
+                                images: newVariantImages.length > 0 ? newVariantImages : undefined,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setNewVariantPrice("");
+                                  setNewVariantStock("");
+                                  setNewVariantSku("");
+                                  setNewVariantAttrs([{ name: "", value: "" }]);
+                                  setNewVariantImages([]);
+                                },
+                              }
+                            );
+                          }}
+                          disabled={createVariantMutation.isPending}
+                        />
+                      </div>
                     </div>
                   )}
                   <FormField label="Rating (0-5)" labelFor="rating">

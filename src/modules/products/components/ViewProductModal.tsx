@@ -1,11 +1,12 @@
 import { mdiClose } from "@mdi/js";
 import moment from "moment";
+import { useQuery } from "@tanstack/react-query";
 import Button from "../../_components/Button";
 import CardBox from "../../_components/CardBox";
-import Icon from "../../_components/Icon";
 import OverlayLayer from "../../_components/OverlayLayer";
 import { getImageUrl } from "../../../shared/constant";
-import type { Product, ProductVariant } from "../interface";
+import { getVariantsByProductId, type VariantResponse } from "../api";
+import type { Product } from "../interface";
 
 type Props = {
   product: Product | null;
@@ -25,11 +26,17 @@ function getSubCategoryName(subCategoryId: Product["subCategoryId"]): string {
 }
 
 export default function ViewProductModal({ product, onClose }: Props) {
+  const { data: variants = [] } = useQuery({
+    queryKey: ["variants", product?._id],
+    queryFn: () => getVariantsByProductId(product!._id),
+    enabled: !!product?._id,
+    select: (res) => (res.data?.data ?? res.data ?? []) as VariantResponse[],
+  });
+
   if (!product) return null;
 
   const categoryName = getCategoryName(product.categoryId);
   const subCategoryName = getSubCategoryName(product.subCategoryId);
-  const variants = (product.variants ?? []) as ProductVariant[];
   const images = product.images ?? [];
   const imageList = Array.isArray(images) ? images : [];
 
@@ -96,18 +103,51 @@ export default function ViewProductModal({ product, onClose }: Props) {
             </div>
           )}
 
-          {variants.length > 0 && (
-            <div>
-              <p className="text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Variants</p>
-              <ul className="mt-1 space-y-1">
-                {variants.map((v, i) => (
-                  <li key={i} className="text-gray-900 dark:text-slate-100">
-                    <span className="font-medium">{v.name}:</span> {v.value}
+          <div>
+            <p className="text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Variants</p>
+            {variants.length > 0 ? (
+              <ul className="mt-2 space-y-4">
+                {variants.map((v) => (
+                  <li
+                    key={v._id}
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-600 dark:bg-slate-800/50"
+                  >
+                    <div className="flex flex-wrap items-start gap-4">
+                      {v.images && v.images.length > 0 && (
+                        <div className="flex flex-shrink-0 gap-1">
+                          {v.images.map((img) => (
+                            <img
+                              key={img._id ?? img.imageUrl}
+                              src={getImageUrl(img.imageUrl)}
+                              alt=""
+                              className="h-16 w-16 rounded border border-gray-200 object-cover dark:border-slate-600"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-gray-900 dark:text-slate-100">
+                          <span className="font-medium">${Number(v.price).toFixed(2)}</span>
+                          <span>Stock: {v.stock}</span>
+                        </div>
+                        {v.attributes && Object.keys(v.attributes).length > 0 && (
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-gray-600 dark:text-slate-400">
+                            {Object.entries(v.attributes).map(([key, value]) => (
+                              <span key={key}>
+                                <span className="font-medium">{key}:</span> {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            ) : (
+              <p className="mt-1 text-gray-500 dark:text-slate-400">No variants for this product.</p>
+            )}
+          </div>
 
           {(product.comment ?? "").trim() && (
             <div>

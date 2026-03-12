@@ -55,7 +55,6 @@ export type ProductFormValues = {
   price: number;
   isActive?: boolean;
   status?: ENUM_PRODUCT_STATUS;
-  variants?: ProductVariant[];
   brandName?: string;
   rating?: number;
   comment?: string;
@@ -70,7 +69,6 @@ export type CreateProductParams = {
   price: number;
   isActive?: boolean;
   status?: string;
-  variants?: ProductVariant[];
   images?: File[];
   bannerImage?: File | string;
   brandName?: string;
@@ -87,7 +85,6 @@ export type UpdateProductParams = {
   price?: number;
   isActive?: boolean;
   status?: string;
-  variants?: ProductVariant[];
   images?: File[];
   removedImages?: string[];
   bannerImage?: File | string;

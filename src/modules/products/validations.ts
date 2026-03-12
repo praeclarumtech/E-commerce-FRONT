@@ -1,10 +1,5 @@
-import { object, string, number, boolean, array } from "yup";
+import { object, string, number, boolean } from "yup";
 import { ENUM_PRODUCT_STATUS } from "./interface";
-
-const variantSchema = object().shape({
-  name: string().trim().optional(),
-  value: string().trim().optional(),
-});
 
 export const productSchema = object().shape({
   categoryId: string().required("Please select a category."),
@@ -21,7 +16,6 @@ export const productSchema = object().shape({
   status: string()
     .oneOf(Object.values(ENUM_PRODUCT_STATUS), "Please select a valid status")
     .optional(),
-  variants: array().of(variantSchema).optional(),
   brandName: string().max(100).optional(),
   rating: number().min(0).max(5).optional(),
   comment: string().max(500).optional(),
