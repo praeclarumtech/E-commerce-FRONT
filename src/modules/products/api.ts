@@ -20,11 +20,13 @@ function buildProductFormData(payload: {
   price: number;
   isActive?: boolean;
   status?: string;
+  brandId?: string;
   brandName?: string;
   rating?: number;
   comment?: string;
   bannerImage?: File | string;
   brandLogo?: File | string;
+  showInBanner?: boolean;
   images?: File[];
   removedImages?: string[];
 }): FormData {
@@ -37,8 +39,10 @@ function buildProductFormData(payload: {
   if (payload.description !== undefined) formData.append("description", payload.description);
   if (payload.isActive !== undefined) formData.append("isActive", String(payload.isActive));
   if (payload.status) formData.append("status", payload.status);
+  if (payload.showInBanner !== undefined) formData.append("showInBanner", String(payload.showInBanner));
+  if (payload.brandId) formData.append("brandId", payload.brandId);
   if (payload.brandName !== undefined) formData.append("brandName", payload.brandName);
-  if (payload.rating !== undefined && payload.rating !== "") formData.append("rating", String(payload.rating));
+  if (payload.rating !== undefined && payload.rating !== null) formData.append("rating", String(payload.rating));
   if (payload.comment !== undefined) formData.append("comment", payload.comment);
   if (payload.bannerImage) {
     if (payload.bannerImage instanceof File) formData.append("bannerImage", payload.bannerImage);
@@ -67,11 +71,13 @@ export function createProduct(data: CreateProductParams) {
     price: data.price,
     isActive: data.isActive,
     status: data.status,
+    brandId: data.brandId,
     brandName: data.brandName,
     rating: data.rating,
     comment: data.comment,
     bannerImage: data.bannerImage,
     brandLogo: data.brandLogo,
+    showInBanner: data.showInBanner,
     images: data.images,
   });
   return api.post("/products", formData);
@@ -86,8 +92,10 @@ export function updateProduct({ id, data }: { id: string; data: UpdateProductPar
   if (data.price !== undefined) formData.append("price", String(data.price));
   if (data.isActive !== undefined) formData.append("isActive", String(data.isActive));
   if (data.status !== undefined) formData.append("status", data.status);
+  if (data.showInBanner !== undefined) formData.append("showInBanner", String(data.showInBanner));
+  if (data.brandId !== undefined) formData.append("brandId", data.brandId);
   if (data.brandName !== undefined) formData.append("brandName", data.brandName);
-  if (data.rating !== undefined && data.rating !== "") formData.append("rating", String(data.rating));
+  if (data.rating !== undefined && data.rating !== null) formData.append("rating", String(data.rating));
   if (data.comment !== undefined) formData.append("comment", data.comment);
   if (data.bannerImage) {
     if (data.bannerImage instanceof File) formData.append("bannerImage", data.bannerImage);

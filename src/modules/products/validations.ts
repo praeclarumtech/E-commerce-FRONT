@@ -16,7 +16,9 @@ export const productSchema = object().shape({
   status: string()
     .oneOf(Object.values(ENUM_PRODUCT_STATUS), "Please select a valid status")
     .optional(),
+  brandId: string().optional(),
   brandName: string().max(100).optional(),
+  showInBanner: boolean().optional(),
   rating: number().min(0).max(5).optional(),
   comment: string().max(500).optional(),
 });

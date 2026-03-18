@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { mdiPackageVariant } from "@mdi/js";
 import CardBox from "../../_components/CardBox";
 import SectionTitleLineWithButton from "../../_components/Section/TitleLineWithButton";
 import Table from "../../../shared/components/Table";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getProducts, deleteProduct, getProductById } from "../api";
+import { getProducts, deleteProduct, getProductById, updateProduct } from "../api";
 import columns from "../columns";
 import Button from "../../_components/Button";
 import { toast } from "../../_lib/toast";
@@ -19,6 +19,8 @@ function normalizeProductsResponse(res: unknown): {
   totalPages: number;
   total: number;
   limit: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 } | undefined {
   const data =
     res && typeof res === "object" && "data" in res
@@ -33,12 +35,16 @@ function normalizeProductsResponse(res: unknown): {
     limit?: number;
   };
   if (!Array.isArray(d.items)) return undefined;
+  const page = d.page ?? 1;
+  const totalPages = d.totalPages ?? 1;
   return {
     items: d.items,
-    page: d.page ?? 1,
-    totalPages: d.totalPages ?? 1,
+    page,
+    totalPages,
     total: d.total ?? 0,
     limit: d.limit ?? 10,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
   };
 }
 
@@ -47,6 +53,7 @@ export default function Products() {
   const [page, setPage] = useState(1);
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [viewProductId, setViewProductId] = useState<string | null>(null);
+  const [updatingShowInBannerId, setUpdatingShowInBannerId] = useState<string | null>(null);
 
   const { data: products, refetch, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["products", page],
@@ -68,7 +75,32 @@ export default function Products() {
     },
   });
 
-  const productColumns = useMemo(() => columns(), []);
+  const updateShowInBannerMutation = useMutation({
+    mutationFn: ({ id, showInBanner }: { id: string; showInBanner: boolean }) =>
+      updateProduct({ id, data: { showInBanner } }),
+    onSuccess: () => {
+      refetch();
+      setUpdatingShowInBannerId(null);
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error.response?.data?.message ?? "Failed to update");
+      setUpdatingShowInBannerId(null);
+    },
+  });
+
+  const handleShowInBannerChange = useCallback((product: Product, value: boolean) => {
+    setUpdatingShowInBannerId(product._id);
+    updateShowInBannerMutation.mutate({ id: product._id, showInBanner: value });
+  }, [updateShowInBannerMutation]);
+
+  const productColumns = useMemo(
+    () =>
+      columns({
+        onShowInBannerChange: handleShowInBannerChange,
+        updatingShowInBannerId,
+      }),
+    [handleShowInBannerChange, updatingShowInBannerId]
+  );
 
   const { data: viewProductData } = useQuery({
     queryKey: ["product", viewProductId],

@@ -93,13 +93,24 @@ const Table = <TData,>({ data, columns, onPageChange, onView, onEdit, deleteMuta
         <tbody>
           {dataTable.getRowModel().rows.map((row) => (
             <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="max-w-0 truncate px-2 py-2 before:hidden">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
+              {row.getVisibleCells().map((cell) => {
+                const header =
+                  typeof cell.column.columnDef.header === "string"
+                    ? cell.column.columnDef.header
+                    : (cell.column.columnDef as { meta?: { label?: string } }).meta?.label ??
+                      cell.column.id;
+                return (
+                  <td
+                    key={cell.id}
+                    data-label={header}
+                    className="max-w-0 truncate px-2 py-2 before:hidden"
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
+              })}
               {(onView || onEdit || deleteMutation) && (
-                <td className="whitespace-nowrap px-2 py-2">
+                <td data-label="Actions" className="whitespace-nowrap px-2 py-2">
                   <Buttons type="justify-end" noWrap>
                     {onView && (
                       <Button

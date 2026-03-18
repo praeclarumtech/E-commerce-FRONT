@@ -2,7 +2,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import moment from "moment";
 import type { Brand } from "./interface";
 
-export default function brandColumns(): ColumnDef<Brand>[] {
+export default function brandColumns(
+  onNameClick?: (brand: Brand) => void
+): ColumnDef<Brand>[] {
   return [
     {
       header: "Sr No.",
@@ -11,7 +13,25 @@ export default function brandColumns(): ColumnDef<Brand>[] {
     {
       header: "Name",
       accessorKey: "brandName",
-      cell: (info) => (info.row.original.brandName ?? "—"),
+      cell: (info) => {
+        const brand = info.row.original;
+        const name = brand.brandName ?? "—";
+        if (onNameClick) {
+          return (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNameClick(brand);
+              }}
+              className="cursor-pointer text-left text-blue-600 outline-none hover:underline focus:underline dark:text-blue-400"
+            >
+              {name}
+            </button>
+          );
+        }
+        return name;
+      },
     },
     {
       header: "Created",

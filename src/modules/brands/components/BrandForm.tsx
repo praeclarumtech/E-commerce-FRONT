@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Formik, Form, Field } from "formik";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +9,6 @@ import Button from "../../_components/Button";
 import Buttons from "../../_components/Buttons";
 import CardBox from "../../_components/CardBox";
 import FormField from "../../_components/FormField";
-import Icon from "../../_components/Icon";
 import { toast } from "../../_lib/toast";
 import { getImageUrl } from "../../../shared/constant";
 import { createBrand, getBrandById, updateBrand, buildBrandFormData } from "../api";
@@ -296,7 +295,6 @@ export default function BrandForm() {
                                 icon={mdiTrashCan}
                                 small
                                 onClick={() => removeImageFile(index)}
-                                title="Remove"
                               />
                             </div>
                             {primaryImageIndex === index && (

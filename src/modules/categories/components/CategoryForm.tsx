@@ -8,6 +8,7 @@ import { mdiPlus, mdiClose, mdiUpload, mdiTrashCan, mdiPencil } from "@mdi/js";
 import Button from "../../_components/Button";
 import Buttons from "../../_components/Buttons";
 import CardBox from "../../_components/CardBox";
+import CardBoxModal from "../../_components/CardBox/Modal";
 import FormField from "../../_components/FormField";
 import Icon from "../../_components/Icon";
 import { toast } from "../../_lib/toast";
@@ -64,6 +65,8 @@ export default function CategoryForm() {
   const [editSubImage, setEditSubImage] = useState<File | null>(null);
   const [editSubImagePreview, setEditSubImagePreview] = useState<string | null>(null);
   const [editSubExistingImage, setEditSubExistingImage] = useState<string | null>(null);
+
+  const [subCategoryToDelete, setSubCategoryToDelete] = useState<{ subCategoryId: string; name: string } | null>(null);
 
   const { data: categoryData, isLoading: isLoadingCategory, isError: isCategoryError } = useQuery({
     queryKey: ["category", id],
@@ -134,6 +137,7 @@ export default function CategoryForm() {
     onSuccess: () => {
       toast.success("Subcategory deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ["category", id] });
+      setSubCategoryToDelete(null);
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error?.response?.data?.message || "Failed to delete subcategory");
@@ -239,15 +243,14 @@ export default function CategoryForm() {
     });
   }, [id, newSubName, newSubDescription, newSubImage, addSubMutate]);
 
-  const handleDeleteSubCategory = useCallback(
-    (subCategoryId: string) => {
-      if (!id) return;
-      if (window.confirm("Are you sure you want to delete this subcategory?")) {
-        deleteSubMutate({ categoryId: id, subCategoryId });
-      }
-    },
-    [id, deleteSubMutate]
-  );
+  const openDeleteSubCategoryModal = useCallback((sub: SubCategory) => {
+    if (sub._id) setSubCategoryToDelete({ subCategoryId: sub._id, name: sub.name });
+  }, []);
+
+  const handleConfirmDeleteSubCategory = useCallback(() => {
+    if (!id || !subCategoryToDelete) return;
+    deleteSubMutate({ categoryId: id, subCategoryId: subCategoryToDelete.subCategoryId });
+  }, [id, subCategoryToDelete, deleteSubMutate]);
 
   const startEditSubCategory = useCallback((sub: SubCategory) => {
     setEditingSubId(sub._id || null);
@@ -799,7 +802,7 @@ export default function CategoryForm() {
                                   icon={mdiTrashCan}
                                   small
                                   isGrouped
-                                  onClick={() => sub._id && handleDeleteSubCategory(sub._id)}
+                                  onClick={() => openDeleteSubCategoryModal(sub)}
                                 />
                               </Buttons>
                             </div>
@@ -890,6 +893,23 @@ export default function CategoryForm() {
           )}
         </Formik>
       </CardBox>
+
+      <CardBoxModal
+        title="Delete subcategory"
+        buttonLabel="Delete"
+        buttonColor="danger"
+        isActive={!!subCategoryToDelete}
+        onConfirm={handleConfirmDeleteSubCategory}
+        onCancel={() => setSubCategoryToDelete(null)}
+      >
+        <p>
+          Are you sure you want to delete the subcategory
+          {subCategoryToDelete ? (
+            <strong className="mx-1">"{subCategoryToDelete.name}"</strong>
+          ) : null}
+          ? This action cannot be undone.
+        </p>
+      </CardBoxModal>
     </div>
   );
 }

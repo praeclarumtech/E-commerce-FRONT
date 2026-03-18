@@ -1,8 +1,10 @@
-export enum ENUM_PRODUCT_STATUS {
-  DRAFT = "Draft",
-  SAVED = "Saved",
-  PUBLISH = "Publish",
-}
+export const ENUM_PRODUCT_STATUS = {
+  DRAFT: "Draft",
+  SAVED: "Saved",
+  PUBLISH: "Publish",
+} as const;
+
+export type ENUM_PRODUCT_STATUS = (typeof ENUM_PRODUCT_STATUS)[keyof typeof ENUM_PRODUCT_STATUS];
 
 export type ProductCategory = {
   _id: string;
@@ -39,6 +41,8 @@ export type Product = {
   variants?: ProductVariant[];
   images?: string[] | { _id?: string; imageUrl?: string }[];
   bannerImage?: string;
+  showInBanner?: boolean;
+  brandId?: string;
   brandName?: string;
   brandLogo?: string;
   rating?: number;
@@ -55,6 +59,8 @@ export type ProductFormValues = {
   price: number;
   isActive?: boolean;
   status?: ENUM_PRODUCT_STATUS;
+  showInBanner?: boolean;
+  brandId?: string;
   brandName?: string;
   rating?: number;
   comment?: string;
@@ -71,6 +77,8 @@ export type CreateProductParams = {
   status?: string;
   images?: File[];
   bannerImage?: File | string;
+  showInBanner?: boolean;
+  brandId?: string;
   brandName?: string;
   brandLogo?: File | string;
   rating?: number;
@@ -88,6 +96,8 @@ export type UpdateProductParams = {
   images?: File[];
   removedImages?: string[];
   bannerImage?: File | string;
+  showInBanner?: boolean;
+  brandId?: string;
   brandName?: string;
   brandLogo?: File | string;
   rating?: number;

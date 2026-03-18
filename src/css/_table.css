@@ -1,14 +1,27 @@
+/* Tablet and up: real table layout. Below 640px: card layout with data-label */
 @layer base {
   table {
     @apply w-full;
   }
 
   thead {
-    @apply hidden lg:table-header-group;
+    @apply hidden;
+  }
+
+  @media (min-width: 640px) {
+    thead {
+      @apply table-header-group;
+    }
   }
 
   tr {
-    @apply relative block max-w-full border-b-4 border-gray-100 lg:table-row lg:border-b-0 dark:border-slate-800;
+    @apply relative block max-w-full border-b-4 border-gray-100 dark:border-slate-800;
+  }
+
+  @media (min-width: 640px) {
+    tr {
+      @apply table-row border-b-0;
+    }
   }
 
   tr:last-child {
@@ -16,15 +29,33 @@
   }
 
   td:not(:first-child) {
-    @apply lg:border-t-0 lg:border-r-0 lg:border-b-0 lg:border-l lg:border-gray-100 lg:dark:border-slate-700;
+    @apply border-0;
+  }
+
+  @media (min-width: 640px) {
+    td:not(:first-child) {
+      @apply border-t-0 border-r-0 border-b-0 border-l border-gray-100 dark:border-slate-700;
+    }
   }
 
   th {
-    @apply lg:p-3 lg:text-left;
+    @apply p-0 text-left;
+  }
+
+  @media (min-width: 640px) {
+    th {
+      @apply p-3 text-left;
+    }
   }
 
   td {
-    @apply flex justify-between border-b border-gray-100 px-4 py-3 text-right align-top lg:table-cell lg:border-b-0 lg:p-3 lg:text-left lg:align-middle dark:border-slate-800;
+    @apply flex justify-between border-b border-gray-100 px-4 py-3 text-right align-top dark:border-slate-800;
+  }
+
+  @media (min-width: 640px) {
+    td {
+      @apply table-cell border-b-0 border-l-0 border-r-0 border-t-0 p-3 text-left align-middle;
+    }
   }
 
   td:last-child {
@@ -33,15 +64,35 @@
 
   tbody tr,
   tbody tr:nth-child(odd) {
-    @apply lg:hover:bg-gray-100 lg:dark:hover:bg-slate-700/70;
+    @apply hover:bg-transparent;
+  }
+
+  @media (min-width: 640px) {
+    tbody tr,
+    tbody tr:nth-child(odd) {
+      @apply hover:bg-gray-100 dark:hover:bg-slate-700/70;
+    }
   }
 
   tbody tr:nth-child(odd) {
-    @apply lg:bg-gray-100/50 lg:dark:bg-slate-800/50;
+    @apply bg-transparent;
+  }
+
+  @media (min-width: 640px) {
+    tbody tr:nth-child(odd) {
+      @apply bg-gray-100/50 dark:bg-slate-800/50;
+    }
   }
 
   td:before {
     content: attr(data-label);
-    @apply pr-3 text-left font-semibold lg:hidden;
+    @apply pr-3 text-left font-semibold;
+  }
+
+  @media (min-width: 640px) {
+    td:before {
+      content: none;
+      @apply p-0 font-normal;
+    }
   }
 }
