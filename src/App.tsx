@@ -24,6 +24,8 @@ const Auth = lazy(() => import('./modules/_routes/Auth'));
 const Login = lazy(() => import('./modules/_auth/components/Login'));
 const SignUp = lazy(() => import('./modules/_auth/components/SignUp'));
 const ForgotPassword = lazy(() => import('./modules/_auth/components/ForgotPassword'));
+const VerifyRegistrationOtp = lazy(() => import('./modules/_auth/components/VerifyRegistrationOtp'));
+const VerifyEmail = lazy(() => import('./modules/_auth/components/VerifyEmail'));
 
 function App() {
   return (
@@ -42,6 +44,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-registration-otp" element={<VerifyRegistrationOtp />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/*" element={<Auth />} />
           </Routes>
         </Suspense>

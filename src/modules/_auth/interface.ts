@@ -34,3 +34,17 @@ export interface ResetPasswordPayload {
     otp: string;
     newPassword: string;
 }
+
+export interface VerifyRegistrationOtpPayload {
+    email: string;
+    otp: string;
+}
+
+export interface VerifyOtpPayload {
+    email: string;
+    otp: string;
+}
+
+export interface VerifyEmailPayload {
+    token: string;
+}

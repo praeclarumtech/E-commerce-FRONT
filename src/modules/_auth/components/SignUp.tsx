@@ -28,9 +28,9 @@ function SignUp() {
 
     const { isPending, mutate: registerFn } = useMutation({
         mutationFn: (payload: RegisterPayload) => registerApi(payload),
-        onSuccess: () => {
-            toast.success("Account created successfully. Please sign in.");
-            navigate("/login", { replace: true });
+        onSuccess: (_, variables) => {
+            toast.success("Account created. Check your email for the OTP to verify.");
+            navigate("/verify-registration-otp", { replace: true, state: { email: variables.email } });
         },
         onError: (error: AxiosError<{ message: string }>) => {
             toast.error(error.response?.data?.message ?? "Registration failed");
